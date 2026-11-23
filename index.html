@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8116E0">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-tap-highlight-color:transparent}</style>
+<title>Eventwhere</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600&family=Mali:wght@400;500;600;700&family=Mitr:wght@500;600&display=swap">
+<style>
+/* Layout: desktop = phone mock + guide panel side by side; phone = the app fills the screen.
+   Single bright theme on purpose: built to stay readable in direct sunlight. */
+:root{
+  color-scheme: light;
+  --lime:#D0FF00; --lime-200:#EEFF9E; --lime-50:#F8FFDB; --lime-ink:#4F6300;
+  --violet:#8116E0; --violet-700:#5A0BA3; --violet-200:#E3CCFF; --violet-50:#F5ECFF;
+  --pink:#FF8ED9; --yellow:#FFDD55; --sky:#62D8FF; --orange:#FFA552;
+  --ink:#1D0B36; --ink-2:#5E4F77; --ink-3:#9C92B0; --line:#F1ECF8;
+  --canvas:#F7F3FD; --surface:#FEFFFC; --backdrop:#EBE1FA;
+  --on-dark:#FFFFFF;
+  --bts:#7CC242; --bts-silom:#00857C; --gold:#C9A227; --mrt:#1D4FA3; --mrt-purple:#6B2C91; --pinkline:#E85DA2; --bus:#FF8A1F; --boat:#0099D6; --walk:#9C92B0; --shuttle:#8116E0;
+  --sh:0 12px 28px -6px rgba(90,11,163,.18); --sh-s:0 4px 14px -2px rgba(90,11,163,.12);
+  --display:"Mitr","Anuphan",system-ui,sans-serif;
+  --body:"Anuphan",system-ui,"Noto Sans Thai",sans-serif;
+  --hand:"Mali","Anuphan",cursive;
+  --r-sm:12px; --r-md:18px; --r-lg:28px;
+}
+html,body{height:100%}
+body{background:var(--backdrop);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(rgba(129,22,224,.14) 1.4px,transparent 1.6px);background-size:22px 22px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- stage ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.phone{position:relative;width:390px;height:min(844px,calc(100dvh - 48px));min-height:640px;background:var(--canvas);border-radius:48px;
+  box-shadow:0 0 0 10px var(--ink),0 40px 80px -20px rgba(29,11,54,.45);overflow:hidden;flex:none}
+.guide{max-width:340px;display:flex;flex-direction:column;gap:18px}
+.guide h1{font-family:var(--display);font-weight:600;font-size:40px;line-height:1.1;margin:0;text-wrap:balance}
+.guide h1 span{background:var(--lime);padding:0 8px;border-radius:12px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.guide p{margin:0;color:var(--ink-2);max-width:62ch}
+.jump{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jump button{background:var(--surface);border-radius:14px;padding:10px 12px;text-align:left;box-shadow:var(--sh-s);font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center}
+.jump button[aria-current="true"]{background:var(--violet);color:var(--on-dark)}
+.jump b{font-family:var(--display);font-weight:500;font-size:12px;opacity:.6;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--ink-2);background:var(--surface);border-radius:14px;padding:10px 12px;border:1.5px dashed var(--violet-200)}
+@media (max-width:860px){
+  .stage{padding:0;display:block;height:100%;min-height:0}
+  .guide{display:none}
+  .phone{width:100%;height:100%;min-height:0;border-radius:0;box-shadow:none}
+  .statusbar{display:none!important}
+}
+
+/* ---------- screens ---------- */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--canvas)}
+.screen[hidden]{display:none!important}
+.screen.enter{animation:enter .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:0}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 30px;font-weight:600;font-size:14px;flex:none}
+.statusbar i{display:inline-block;height:10px;border-radius:3px;background:currentColor;margin-left:5px}
+.statusbar i:nth-child(1){width:18px}.statusbar i:nth-child(2){width:16px}.statusbar i:nth-child(3){width:26px;height:12px;border-radius:4px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:8px}
+.between{justify-content:space-between}
+.h-xl{font-family:var(--display);font-weight:600;font-size:30px;line-height:1.2;margin:0;text-wrap:balance}
+.h-l{font-family:var(--display);font-weight:600;font-size:23px;line-height:1.3;margin:0;text-wrap:balance}
+.h-m{font-family:var(--display);font-weight:500;font-size:18px;line-height:1.4;margin:0}
+.h-s{font-family:var(--display);font-weight:500;font-size:16px;line-height:1.45;margin:0}
+.small{font-size:13px;color:var(--ink-2)}
+.cap{font-size:11.5px;color:var(--ink-2);font-weight:500}
+.gap8{height:8px}.gap16{height:16px}.gap24{height:24px}
+.ico{width:20px;height:20px;flex:none}
+.round{width:44px;height:44px;border-radius:50%;background:var(--surface);display:grid;place-items:center;box-shadow:var(--sh-s);flex:none}
+.round.sm{width:38px;height:38px}
+
+/* buttons, chips */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;font-weight:600;font-size:15px;box-shadow:var(--sh-s);transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn.lime{background:var(--lime);color:var(--ink)}
+.btn.violet{background:var(--violet);color:var(--on-dark)}
+.btn.white{background:var(--surface);color:var(--ink)}
+.btn.block{width:100%}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 16px;border-radius:999px;background:var(--surface);font-weight:600;font-size:14px;box-shadow:var(--sh-s);white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--violet);color:var(--on-dark)}
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:999px;padding:6px 6px 6px 16px;box-shadow:var(--sh-s)}
+.search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:15px;padding:8px 0}
+.search input::placeholder{color:var(--ink-3)}
+.search .go{width:40px;height:40px;border-radius:50%;background:var(--violet);color:var(--on-dark);display:grid;place-items:center;flex:none}
+.sechead{display:flex;justify-content:space-between;align-items:center}
+.link{color:var(--violet);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:2px}
+
+/* transit badges */
+.tb{display:inline-flex;align-items:center;gap:4px;padding:3px 10px 3px 7px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.4;white-space:nowrap;color:var(--on-dark)}
+.tb svg{width:15px;height:15px}
+.tb.bts{background:var(--bts);color:var(--ink)} .tb.bts-silom{background:var(--bts-silom)} .tb.gold{background:var(--gold);color:var(--ink)}
+.tb.mrt{background:var(--mrt)} .tb.mrt-purple{background:var(--mrt-purple)} .tb.pink{background:var(--pinkline)}
+.tb.bus{background:var(--bus);color:var(--ink)} .tb.boat{background:var(--boat)} .tb.walk{background:var(--line);color:var(--ink)} .tb.shuttle{background:var(--violet)}
+
+/* bottom nav */
+.nav{flex:none;display:flex;justify-content:space-between;background:var(--surface);padding:8px max(12px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));box-shadow:0 -8px 24px -12px rgba(90,11,163,.18)}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 10px;border-radius:16px;font-size:11px;font-weight:500;color:var(--ink-2);min-width:58px}
+.nav button svg{width:24px;height:24px;color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--lime);color:var(--ink)}
+
+/* event cards */
+.carousel{display:flex;gap:12px;overflow-x:auto;padding:4px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));scroll-snap-type:x mandatory;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+.ecard{position:relative;flex:none;width:272px;background:var(--surface);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh);text-align:left;scroll-snap-align:start;display:flex;flex-direction:column}
+.ecard .cover,.ecard .body{width:100%}
+.ecard .cover{height:140px;position:relative;display:grid;place-items:center;font-size:62px}
+.datebadge{position:absolute;left:12px;top:12px;background:var(--yellow);border-radius:12px;padding:2px 10px 4px;text-align:center;line-height:1.05}
+.datebadge b{display:block;font-family:var(--display);font-weight:600;font-size:22px}
+.datebadge span{font-size:11px;font-weight:600}
+.savebtn{position:absolute;right:12px;top:12px;width:38px;height:38px;border-radius:50%;background:var(--surface);display:grid;place-items:center;box-shadow:var(--sh-s)}
+.savebtn[aria-pressed="true"]{background:var(--violet);color:var(--on-dark)}
+.ecard .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
+.meta{font-size:12px;font-weight:600;color:var(--violet)}
+.venue{display:flex;gap:4px;align-items:center;font-size:13px;color:var(--ink-2)}
+.venue svg{width:15px;height:15px}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.crow{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:var(--r-lg);padding:10px;box-shadow:var(--sh-s);text-align:left;width:100%}
+.crow .thumb{width:80px;height:80px;border-radius:var(--r-md);display:grid;place-items:center;font-size:38px;flex:none}
+.crow .info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.crow .title{font-family:var(--display);font-weight:500;font-size:16px;line-height:1.35}
+.empty{text-align:center;padding:24px 16px;color:var(--ink-2);background:var(--surface);border-radius:var(--r-lg)}
+
+/* hero blocks */
+.hero{background:var(--lime);border-radius:0 0 36px 36px;position:relative;overflow:hidden;padding-bottom:22px}
+.hero.violet{background:var(--violet);color:var(--on-dark)}
+.hero.lav{background:var(--violet-50)}
+.pillnote{display:inline-flex;gap:6px;align-items:center;background:var(--surface);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--ink);box-shadow:var(--sh-s)}
+.deco{position:absolute;pointer-events:none}
+.promo{background:var(--violet);color:var(--on-dark);border-radius:var(--r-lg);padding:16px;display:flex;gap:10px;align-items:center;box-shadow:var(--sh);position:relative}
+.promo p{margin:0;font-size:13px;opacity:.95}
+
+/* event detail */
+.cover-big{background:var(--violet-200);border-radius:0 0 36px 36px;position:relative;overflow:hidden;padding-bottom:18px}
+.cover-emoji{font-size:96px;text-align:center;line-height:1.2}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px}
+.inforow{display:flex;gap:12px;align-items:center}
+.inforow .ib{width:42px;height:42px;border-radius:14px;background:var(--lime-50);color:var(--lime-ink);display:grid;place-items:center;flex:none}
+.card{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh)}
+.howrow{display:flex;gap:10px;align-items:flex-start;padding-top:12px;border-top:1.5px solid var(--line)}
+.howrow:first-of-type{border-top:0;padding-top:0}
+.tip{background:var(--yellow);border-radius:var(--r-lg);padding:14px 16px;display:flex;gap:12px}
+.tip .round{width:38px;height:38px}
+.post{background:var(--surface);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh-s);display:flex;flex-direction:column;gap:12px}
+.post .av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:20px;flex:none}
+.tag{font-size:11.5px;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--lime-50);color:var(--lime-ink);white-space:nowrap}
+.tag.q{background:var(--violet-50);color:var(--violet-700)}
+.tag.r{background:#FFF1D6;color:#7A4A00}
+.tag.p{background:#E3F7FF;color:#005E80}
+.post p{margin:0}
+.post .img{height:150px;border-radius:var(--r-md);display:grid;place-items:center;font-size:52px}
+.actions{display:flex;gap:20px}
+.actions button{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.actions button[aria-pressed="true"]{color:#D61F84}
+.actions button[aria-pressed="true"] svg{fill:#FF8ED9;stroke:#D61F84}
+.actionbar{flex:none;display:flex;gap:12px;background:var(--surface);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));box-shadow:0 -8px 24px -12px rgba(90,11,163,.18)}
+
+/* route */
+.rinput{background:var(--surface);border-radius:var(--r-lg);padding:12px 12px 12px 16px;display:flex;gap:12px;align-items:center;box-shadow:var(--sh-s)}
+.rinput .dot{width:14px;height:14px;border-radius:50%;flex:none}
+.map{border-radius:var(--r-lg);overflow:hidden;background:#EAFBF1;position:relative;box-shadow:var(--sh-s)}
+.map svg{display:block;width:100%;height:auto}
+.opts{display:flex;gap:10px;overflow-x:auto;padding:4px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
+.opts::-webkit-scrollbar{display:none}
+.opt{flex:none;width:150px;background:var(--surface);border-radius:var(--r-md);padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:4px;box-shadow:var(--sh-s)}
+.opt[aria-pressed="true"]{background:var(--lime);box-shadow:var(--sh)}
+.opt .t{font-family:var(--display);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.modes{display:flex;align-items:center;gap:2px;color:var(--ink)}
+.modes svg{width:16px;height:16px}
+.modes .sep{width:10px;height:10px;opacity:.5}
+.bigmin{font-family:var(--display);font-weight:600;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.jbar{display:flex;gap:3px;height:14px}
+.jbar span{border-radius:7px;min-width:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border-radius:var(--r-md);padding:10px;display:flex;flex-direction:column;gap:1px}
+.stat b{font-family:var(--display);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.timeline{background:var(--surface);border-radius:var(--r-lg);padding:16px 16px 4px;box-shadow:var(--sh-s)}
+.step{display:flex;gap:12px;width:100%;text-align:left;border-radius:16px;transition:background .2s}
+.step .rail{display:flex;flex-direction:column;align-items:center;flex:none}
+.step .dotm{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--on-dark)}
+.step .dotm svg{width:18px;height:18px}
+.step .line{width:4px;flex:1;min-height:18px;border-radius:2px}
+.step .line.dash{background:repeating-linear-gradient(var(--walk) 0 6px,transparent 6px 11px)!important}
+.step .ct{padding:6px 0 22px;display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.step .durp{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;background:var(--line);border-radius:999px;padding:1px 10px 1px 8px;font-size:12px;font-weight:600}
+.step.now{background:var(--lime-50);box-shadow:0 0 0 2px var(--lime)}
+.step.done{opacity:.45}
+.navbanner{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--on-dark);border-radius:0 0 24px 24px;padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
+.navbanner .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}
+.navbanner .bar span{display:block;height:100%;background:var(--lime);transition:width .3s}
+.navbanner .row button{flex:1;min-height:40px;border-radius:999px;font-weight:600}
+.navbanner .prev{background:rgba(255,255,255,.14)} .navbanner .next{background:var(--lime);color:var(--ink)}
+
+/* diary */
+.dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dstat{border-radius:var(--r-md);padding:10px 12px;color:var(--ink);box-shadow:var(--sh-s)}
+.dstat b{display:block;font-family:var(--display);font-weight:500;font-size:19px;font-variant-numeric:tabular-nums}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{border-radius:var(--r-md);background:var(--surface);padding:8px 0;display:flex;flex-direction:column;align-items:center;box-shadow:var(--sh-s);font-variant-numeric:tabular-nums}
+.day b{font-family:var(--display);font-weight:500;font-size:16px}
+.day i{width:6px;height:6px;border-radius:50%;background:transparent;margin-top:2px}
+.day.ev i{background:var(--violet)}
+.day[aria-pressed="true"]{background:var(--lime)}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.mood{border-radius:var(--r-md);padding:6px 0;display:flex;flex-direction:column;align-items:center;font-size:24px;line-height:1.3}
+.mood small{font-size:12px;font-weight:600}
+.mood[aria-pressed="true"]{box-shadow:0 0 0 3px var(--violet)}
+.dcard{border-radius:var(--r-lg);padding:16px;display:flex;gap:14px;box-shadow:var(--sh);text-align:left;width:100%}
+.dcard .dd{background:var(--surface);border-radius:var(--r-md);padding:4px 10px 6px;text-align:center;align-self:flex-start;line-height:1.05}
+.dcard .dd b{display:block;font-family:var(--display);font-weight:600;font-size:28px;font-variant-numeric:tabular-nums}
+.dcard p{margin:0;font-size:13px;line-height:1.55}
+.wpill{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border-radius:999px;padding:2px 10px 2px 8px;font-size:12px;font-weight:600}
+
+/* welcome */
+.wart{height:440px;background:var(--violet);border-radius:0 0 48px 48px;position:relative;overflow:hidden;flex:none;color:var(--on-dark)}
+.wart .circle{position:absolute;left:50%;top:96px;width:300px;height:300px;margin-left:-150px;border-radius:50%;background:var(--surface)}
+.wart .ring{position:absolute;left:50%;top:78px;width:336px;height:336px;margin-left:-168px;border-radius:50%;border:6px dotted var(--lime)}
+.wart .blob{position:absolute;left:-40px;top:34px;width:120px;height:120px;border-radius:50%;background:var(--pink);opacity:.9}
+.wbody{padding:24px 24px 0;display:flex;flex-direction:column;gap:12px}
+.wbody .h-xl{font-size:36px}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:4px;background:var(--violet-200)}.dots i:first-child{width:24px;background:var(--violet)}
+.wact{margin-top:auto;padding:16px 24px calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+
+/* ---------- mascot animations (Welcome + Community only) ---------- */
+.m{position:absolute;pointer-events:none}
+.m svg{display:block;width:100%;height:100%;overflow:visible}
+.a-train{animation:hop 2.2s cubic-bezier(.3,.7,.4,1) infinite;transform-origin:50% 100%}
+@keyframes hop{0%,40%{transform:translateY(0) scale(1,1)}52%{transform:translateY(-16px) scale(.95,1.07)}64%{transform:translateY(5px) scale(1.07,.92)}72%,100%{transform:translateY(0) scale(1,1)}}
+.a-train .lids{opacity:0;animation:blink 2.2s infinite}
+@keyframes blink{0%,70%{opacity:0}74%,86%{opacity:1}90%,100%{opacity:0}}
+.a-float{animation:float 2.8s ease-in-out infinite alternate}
+@keyframes float{from{transform:translateY(0) rotate(10deg)}to{transform:translateY(-14px) rotate(1deg)}}
+.a-drift{animation:drift 3.6s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(-6px,0) rotate(-6deg)}to{transform:translate(7px,-7px) rotate(-2deg)}}
+.a-wiggle{animation:wiggle 1.4s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-10deg)}25%{transform:translateY(-10px) rotate(6deg)}50%{transform:rotate(-10deg)}75%{transform:translateY(-6px) rotate(-16deg)}}
+.a-pulse{animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,30%{transform:scale(1) rotate(-8deg)}60%{transform:scale(1.2) rotate(2deg)}100%{transform:scale(1) rotate(-8deg)}}
+.a-sway{animation:sway 1.2s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-10deg)}to{transform:translateY(-7px) rotate(6deg)}}
+.a-twinkle{animation:twinkle 1.6s ease-in-out infinite}
+.a-twinkle.d2{animation-delay:.5s;animation-duration:1.9s}.a-twinkle.d3{animation-delay:.9s;animation-duration:1.3s}
+@keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.5) rotate(45deg);opacity:.4}}
+.a-tilt{animation:tilt 3.4s ease-in-out infinite}
+@keyframes tilt{0%,20%{transform:translateY(0) rotate(0)}40%,60%{transform:translateY(-8px) rotate(8deg)}80%,100%{transform:translate(4px,2px) rotate(-6deg)}}
+.qmark{position:absolute;font-family:var(--display);font-weight:600;font-size:22px;color:var(--violet);opacity:0;animation:q 3.4s ease-in-out infinite}
+@keyframes q{0%,25%{opacity:0;transform:translateY(4px) rotate(12deg)}40%,60%{opacity:1;transform:translateY(-6px) rotate(12deg)}75%,100%{opacity:0;transform:translateY(-12px) rotate(12deg)}}
+.a-pop{animation:pop 2s ease-out infinite}
+@keyframes pop{0%,55%{transform:scale(1) rotate(8deg)}64%{transform:scale(1.25) translateY(-6px) rotate(-14deg)}74%{transform:scale(.92) rotate(6deg)}84%,100%{transform:scale(1) rotate(8deg)}}
+.a-peek{animation:peek 3.6s ease-in-out infinite}
+@keyframes peek{0%,38%{transform:translateY(0) rotate(8deg)}50%,62%{transform:translateY(46px) rotate(8deg)}72%{transform:translateY(-10px) rotate(-12deg)}80%{transform:rotate(12deg)}90%,100%{transform:rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- notebook ---------- */
+.nbhead{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 16px 8px}
+.nbhead .btn{min-height:40px;padding:0 16px}
+.canvaswrap{position:relative;padding:6px 12px 130px 12px}
+.paper{position:relative;isolation:isolate;background-color:var(--surface);border-radius:28px;box-shadow:var(--sh);min-height:1000px;touch-action:pan-y}
+.paper.dot{background-image:radial-gradient(rgba(156,146,176,.55) 1.3px,transparent 1.6px);background-size:18px 18px;background-position:9px 9px}
+.paper.grid{background-image:linear-gradient(rgba(227,204,255,.8) 1px,transparent 1px),linear-gradient(90deg,rgba(227,204,255,.8) 1px,transparent 1px);background-size:18px 18px}
+.paper.lined{background-image:linear-gradient(90deg,transparent 39px,rgba(255,142,217,.8) 39px 41px,transparent 41px),linear-gradient(transparent 27px,rgba(227,204,255,.9) 27px 28px);background-size:100% 100%,100% 28px;background-position:0 0,0 28px}
+.months{position:absolute;right:6px;top:150px;display:flex;flex-direction:column;gap:8px}
+.months button{width:30px;height:62px;border-radius:0 12px 12px 0;writing-mode:vertical-rl;font-size:12px;font-weight:600;display:grid;place-items:center;box-shadow:var(--sh-s)}
+.months button[aria-pressed="true"]{background:var(--violet)!important;color:var(--on-dark);width:34px}
+.ptitle{position:absolute;left:20px;right:20px;top:20px;border:1.5px solid var(--ink-3);border-radius:999px;text-align:center;font-family:var(--hand);font-weight:500;font-size:14px;padding:5px;background:var(--surface);pointer-events:none}
+.it{position:absolute;left:0;top:0;transform-origin:50% 50%;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.it.drag{cursor:grabbing}
+.it.sel::after{content:"";position:absolute;inset:-8px;border:1.5px dashed var(--violet);border-radius:14px;pointer-events:none}
+.h{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--surface);border:2.5px solid var(--violet);display:none;z-index:2;touch-action:none}
+.it.sel .h{display:block}
+.h.sc{right:-16px;bottom:-16px;cursor:nwse-resize}
+.h.ro{left:50%;top:-36px;margin-left:-8px;cursor:grab;background:var(--violet)}
+.h.ro::after{content:"";position:absolute;left:50%;top:12px;width:1.5px;height:14px;background:var(--violet)}
+[data-edit][contenteditable="true"]{outline:2px solid var(--lime);border-radius:6px;cursor:text;user-select:text;-webkit-user-select:text}
+.ctx{position:absolute;z-index:999;display:flex;gap:4px;background:var(--ink);border-radius:999px;padding:5px;box-shadow:var(--sh)}
+.ctx button{width:36px;height:36px;border-radius:50%;color:var(--on-dark);display:grid;place-items:center}
+.ctx button:hover{background:rgba(255,255,255,.14)}
+.ctx svg{width:18px;height:18px}
+.inklayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.paper.pen .inklayer{pointer-events:auto;cursor:crosshair;touch-action:none;z-index:1000}
+.paper.pen .it{pointer-events:none}
+.fit svg{display:block;width:100%;height:100%}
+/* random event */
+.randcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--sh-s);border:2px dashed var(--violet-200)}
+.randcard .dice{width:52px;height:52px;border-radius:16px;background:var(--lime);display:grid;place-items:center;font-size:30px;flex:none;transform:rotate(-8deg)}
+.slot{border-radius:28px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-height:210px;justify-content:center;transition:background .12s}
+.slot .em{font-size:76px;line-height:1.1}
+.slot.spin .em{filter:blur(.6px);transform:scale(.92)}
+.slot.win{box-shadow:0 0 0 4px var(--violet),var(--sh)}
+.slot .ttl{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.3}
+@keyframes landed{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.slot.win{animation:landed .4s ease-out}
+/* ticket purchase */
+.tier{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:18px;background:var(--canvas);border:2px solid transparent}
+.tier[aria-pressed="true"]{border-color:var(--violet);background:var(--violet-50)}
+.tier b{font-family:var(--display);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper button{width:40px;height:40px;border-radius:50%;background:var(--violet-50);font-size:20px;font-weight:600;color:var(--violet-700)}
+.stepper button:disabled{opacity:.35}
+.stepper output{font-family:var(--display);font-weight:500;font-size:20px;min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px dashed var(--violet-200);padding-top:12px}
+.total b{font-family:var(--display);font-weight:600;font-size:26px;font-variant-numeric:tabular-nums}
+.eticket{background:var(--violet);color:var(--on-dark);border-radius:28px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative}
+.eticket .qr{background:#fff;border-radius:16px;padding:10px;align-self:center;width:150px;height:150px;box-sizing:border-box}
+.eticket .qr svg{display:block;width:100%;height:100%}
+.eticket .code{text-align:center;font-family:var(--display);font-weight:500;letter-spacing:.12em;font-variant-numeric:tabular-nums}
+/* auth (login / register) */
+.auth{min-height:100%;background:var(--violet);color:var(--on-dark);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.auth .topbar{position:relative;z-index:2}
+.authwrap{flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-block:8px 40px;position:relative;z-index:1}
+.brand{text-align:center;font-family:var(--display);font-weight:600;font-size:22px}
+.brand span{background:var(--lime);color:var(--ink);padding:0 8px;border-radius:10px}
+.auth .round{color:var(--ink)}
+.authcard{box-sizing:border-box;background:var(--surface);color:var(--ink);border-radius:32px;padding:26px 20px 22px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;position:relative;max-width:420px;width:100%;margin:0 auto}
+.authcard form{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label{font-size:13px;font-weight:600}
+.inp{display:flex;align-items:center;gap:8px;background:var(--canvas);border-radius:16px;padding:0 6px 0 14px;min-height:52px;border:2px solid transparent;color:var(--ink-2)}
+.inp:focus-within{border-color:var(--violet);background:var(--surface)}
+.inp.bad{border-color:#D61F84}
+.inp input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:16px;padding:12px 0;color:var(--ink)}
+.inp input::placeholder{color:var(--ink-3)}
+.eye{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink-2)}
+.err{color:#B4006A;font-size:12.5px;font-weight:500;margin:0}
+.hint{font-size:12px;color:var(--ink-2);margin:0}
+.swaplink{text-align:center;font-size:14px;color:var(--ink-2)}
+.swaplink button{color:var(--violet);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.peek{position:absolute;top:-62px;right:22px;width:84px;height:84px;pointer-events:none}
+.cover-photo{height:220px;margin:4px 16px 0;border-radius:24px;background:center/cover no-repeat;box-shadow:var(--sh-s)}
+.toolbar{position:absolute;left:16px;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--violet-700);border-radius:999px;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;box-shadow:var(--sh);z-index:20}
+.toolbar>button{display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--on-dark);font-size:11px;padding:4px 6px;border-radius:14px;min-width:50px}
+.toolbar>button span{color:var(--violet-200)}
+.toolbar>button[aria-pressed="true"]{background:rgba(255,255,255,.16)}
+.toolbar svg{width:22px;height:22px}
+.toolbar .plus{width:58px;height:58px;border-radius:50%;background:var(--lime);color:var(--ink);display:grid;place-items:center;min-width:0;padding:0}
+.toolbar .plus svg{width:28px;height:28px}
+.penbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(98px + env(safe-area-inset-bottom,0px));background:var(--surface);border-radius:999px;padding:6px 8px;display:flex;gap:8px;align-items:center;box-shadow:var(--sh);z-index:20}
+.penbar .sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1.5px var(--line)}
+.penbar .sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--violet)}
+.penbar .w{font-size:12px;font-weight:600;padding:0 8px}
+
+/* widgets (notebook elements) */
+.w-prompt{width:160px;background:var(--violet-200);border-radius:24px;padding:14px;font-family:var(--hand);font-weight:600;font-size:16px;line-height:1.6;box-shadow:var(--sh-s)}
+.w-prompt .pill{display:inline-block;background:var(--surface);border-radius:999px;padding:0 10px;font-weight:500}
+.w-prompt .u{display:block;border-bottom:2px solid var(--ink);font-weight:500;font-size:14px}
+.w-reward{width:160px;background:var(--lime-200);border-radius:24px;padding:14px;font-family:var(--hand);font-weight:500;font-size:14px;text-align:center;line-height:1.5;box-shadow:var(--sh-s);display:flex;flex-direction:column;gap:8px}
+.w-reward .pill{background:var(--surface);border-radius:999px;padding:4px 8px}
+.w-quote{background:var(--violet);color:var(--on-dark);border-radius:999px;padding:10px 22px;font-family:var(--hand);font-weight:700;font-size:21px;white-space:nowrap;position:relative}
+.w-quote::after{content:"";position:absolute;left:26px;bottom:-14px;border:9px solid transparent;border-top:14px solid var(--violet);border-left-width:3px}
+.w-music{width:160px;border-radius:22px;padding:12px 14px;background:linear-gradient(135deg,#E3CCFF,#FFC7EE);box-shadow:var(--sh-s);display:flex;flex-direction:column;gap:8px}
+.w-music .art{width:36px;height:36px;border-radius:10px;background:var(--violet);display:grid;place-items:center;font-size:18px}
+.w-music .pb{height:5px;border-radius:3px;background:rgba(255,255,255,.75)}.w-music .pb i{display:block;height:100%;width:38%;border-radius:3px;background:var(--violet-700)}
+.w-ticket{width:178px;background:var(--pink);border-radius:18px;display:flex;box-shadow:var(--sh-s)}
+.w-ticket .l{padding:12px;flex:1;font-family:var(--hand);display:flex;flex-direction:column;gap:1px}
+.w-ticket .r{border-left:2px dashed var(--surface);display:grid;place-items:center;padding:0 10px;font-size:24px}
+.w-transit{width:160px;background:var(--surface);border-radius:20px;padding:12px 14px;box-shadow:var(--sh-s);display:flex;flex-direction:column;gap:5px;font-family:var(--hand)}
+.w-polaroid{width:156px;background:var(--surface);border-radius:8px;padding:10px 10px 12px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:8px;align-items:center;font-family:var(--hand);font-weight:500;font-size:14px}
+.w-polaroid .ph{width:136px;height:118px;border-radius:4px;background:var(--violet-200);display:grid;place-items:center;font-size:44px;overflow:hidden}
+.w-polaroid .ph img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.w-notes{width:300px;font-family:var(--hand);padding:4px}
+.w-notes h4{margin:0 0 4px;font-weight:700;font-size:21px}
+.w-notes ul{margin:0;padding-left:18px;font-size:13px;line-height:1.85}
+.w-mood{width:300px;background:var(--surface);border-radius:24px;padding:14px;box-shadow:var(--sh-s);font-family:var(--hand);font-weight:500;font-size:14px;display:flex;flex-direction:column;gap:10px}
+.w-mood .ms{display:flex;justify-content:space-between}
+.w-mood .ms span{width:44px;height:44px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:22px}
+.w-mood .ms span.on{background:var(--lime);box-shadow:0 0 0 3px var(--violet)}
+.w-myself{width:300px;background:var(--violet-700);color:var(--on-dark);border-radius:28px;padding:18px;box-shadow:var(--sh);font-family:var(--hand);display:flex;flex-direction:column;gap:10px}
+.w-myself .av{width:44px;height:44px;border-radius:50%;background:var(--lime);display:grid;place-items:center;font-size:22px}
+.w-myself .msg{font-weight:700;font-size:21px;line-height:1.4}
+.t-head{font-family:var(--display);font-weight:600;font-size:26px;white-space:nowrap;background:var(--lime);padding:2px 14px;border-radius:14px}
+.t-hand{font-family:var(--hand);font-weight:600;font-size:20px;white-space:nowrap;padding:2px 6px}
+.t-bubble{font-family:var(--hand);font-weight:600;font-size:16px;background:var(--surface);border-radius:999px;padding:8px 16px;box-shadow:var(--sh-s);white-space:nowrap}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(29,11,54,.45);z-index:50;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:78%;background:var(--surface);border-radius:36px 36px 0 0;z-index:51;display:flex;flex-direction:column;animation:up .32s cubic-bezier(.2,.8,.2,1);box-shadow:var(--sh)}
+@keyframes up{from{transform:translateY(100%)}}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:10px auto 4px;flex:none}
+.sheet .scroll{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{aspect-ratio:1;max-width:100%;border-radius:20px;background:var(--violet-50);display:grid;place-items:center;position:relative;transition:transform .12s}
+.tile:active{transform:scale(.94)}
+.tile svg{width:56%;height:56%}
+.tile .new{position:absolute;right:6px;top:6px;background:var(--lime);font-size:10px;font-weight:600;border-radius:999px;padding:0 6px}
+.wtiles{display:flex;gap:10px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.wtiles::-webkit-scrollbar{display:none}
+.wtile{flex:none;width:124px;background:var(--violet-50);border-radius:20px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.wtile .pv{width:104px;height:80px;position:relative;overflow:hidden;display:grid;place-items:center}
+.wtile .pv>div{transform:scale(.58);transform-origin:center;flex:none}
+.ttiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ttile{height:64px;border-radius:18px;display:grid;place-items:center;max-width:100%}
+.tpl{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tplc{background:var(--violet-50);border-radius:22px;padding:10px;display:flex;flex-direction:column;gap:8px;text-align:left;font-size:13px;font-weight:600}
+.tplc .mini{aspect-ratio:1;max-width:100%;background:var(--surface);border-radius:14px;position:relative;overflow:hidden}
+.tplc .mini i{position:absolute;border-radius:8px}
+textarea.compose{width:100%;min-height:110px;border:0;border-radius:18px;background:var(--canvas);padding:12px 14px;resize:vertical;font-size:15px;outline:none}
+textarea.compose:focus{box-shadow:0 0 0 2px var(--violet)}
+.toast{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:var(--ink);color:var(--on-dark);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;z-index:60;box-shadow:var(--sh);animation:toast 2.2s ease forwards;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+</style>
+
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone"></div>
+  <aside class="guide" aria-label="คู่มือต้นแบบ">
+    <h1>Event<span>where</span></h1>
+    <p>ต้นแบบเว็บแอปรวมอีเว้นต์ในกรุงเทพฯ สำหรับสายไปงานที่เดินทางด้วยรถไฟฟ้า รถเมล์ และเรือ กดใช้งานได้จริงทุกหน้า</p>
+    <div class="jump" id="jump"></div>
+    <p class="note">ลองดู: เลือกเส้นทางแล้วกด “เริ่มนำทาง”, กดหัวใจในคอมมู, และในสมุดบันทึกลองลาก หมุน ย่อขยาย วาดด้วยปากกา หรือกด + เพื่อเพิ่ม Element<br><br>ข้อมูลอีเว้นต์ เส้นทาง เวลา และค่าโดยสารในต้นแบบนี้เป็นข้อมูลตัวอย่าง</p>
+  </aside>
+</div>
+
+<script>
+(()=>{
+/* ================= icons ================= */
+const P={
+home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+route:'<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+message:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+train:'<rect x="4" y="3" width="16" height="16" rx="3"/><path d="M4 11h16M12 3v8M8 19l-2 3M16 19l2 3"/>',
+bus:'<rect x="3" y="3" width="18" height="15" rx="3"/><path d="M3 10h18M7 21v-3M17 21v-3"/>',
+boat:'<path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.4 18A11.6 11.6 0 0 0 21 13l-9-4-9 4c0 1.8.4 3.4 1.2 5"/><path d="M19 12V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v5M12 9v4M12 2v3"/>',
+walk:'<circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 3v4M7 12l3-4 4 1 3 3M10 8l-1 5"/>',
+plus:'<path d="M5 12h14M12 5v14"/>',back:'<path d="m12 19-7-7 7-7M19 12H5"/>',
+share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/>',
+bookmark:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+swap:'<path d="m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16"/>',
+coin:'<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.4 0-2.5.8-2.5 2s1.1 1.6 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1 0-2-.5-2.5-1.5M12 6v2M12 16v2"/>',
+chev:'<path d="m9 18 6-6-6-6"/>',bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
+locate:'<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>',
+ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/>',
+pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',type:'<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
+undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',
+image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',rotate:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M9.9 4.2A10 10 0 0 1 12 4c6.5 0 10 8 10 8a17 17 0 0 1-2.2 3.3M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M14.1 14.1a3 3 0 0 1-4.2-4.2M2 2l20 20"/>',lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+layers:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',check:'<path d="M20 6 9 17l-5-5"/>'
+};
+const I=(n,cls='ico')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||''}</svg>`;
+const MODE_ICON={walk:'walk',bts:'train','bts-silom':'train',gold:'train',mrt:'train','mrt-purple':'train',pink:'train',bus:'bus',boat:'boat',shuttle:'bus',arrive:'pin'};
+const MODE_COLOR={walk:'var(--walk)',bts:'var(--bts)','bts-silom':'var(--bts-silom)',gold:'var(--gold)',mrt:'var(--mrt)','mrt-purple':'var(--mrt-purple)',pink:'var(--pinkline)',bus:'var(--bus)',boat:'var(--boat)',shuttle:'var(--violet)',arrive:'var(--lime)'};
+const DARK_ICON=new Set(['bts','gold','bus','arrive']);
+const TIERS={popcon:[['บัตรทั่วไป 1 วัน',350],['บัตร 2 วัน (เสาร์–อาทิตย์)',590]],beer:[['บัตรชิม 5 แก้ว',290],['บัตร VIP ชิมไม่อั้น',590]]};
+const tiersOf=e=>e.tiers||TIERS[e.id]||[['ลงทะเบียนเข้างานฟรี',0]];
+const baht=n=>n?'฿'+n.toLocaleString('th-TH'):'ฟรี';
+const tb=(m,l)=>`<span class="tb ${m}">${I(MODE_ICON[m]||'train')}${l}</span>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= mascots & stickers (SVG) ================= */
+const L='#D0FF00',PV='#8116E0',K='#FF8ED9',W='#FEFFFC',IK='#1D0B36',LV='#E3CCFF';
+const eyes=(x1,x2,y,s=1)=>[x1,x2].map(x=>`<ellipse cx="${x}" cy="${y}" rx="${9*s}" ry="${10*s}" fill="#fff"/><circle cx="${x+2*s}" cy="${y+2*s}" r="${5*s}" fill="${IK}"/><circle cx="${x+3.5*s}" cy="${y}" r="${1.7*s}" fill="#fff"/>`).join('');
+const sv=(vb,b)=>`<svg viewBox="0 0 ${vb}" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${b}</svg>`;
+const MASCOT={
+train:sv('120 120',`<path d="M40 104l-8 12M80 104l8 12" stroke="${IK}" stroke-width="6" stroke-linecap="round"/><rect x="18" y="14" width="84" height="92" rx="32" fill="${L}"/><rect x="50" y="4" width="20" height="14" rx="7" fill="${PV}"/><rect x="30" y="28" width="60" height="34" rx="16" fill="${W}"/>${eyes(48,72,45,.85)}<g class="lids"><rect x="36" y="35" width="24" height="22" rx="10" fill="${W}"/><rect x="60" y="35" width="24" height="22" rx="10" fill="${W}"/><path d="M42 48q6-7 12 0M66 48q6-7 12 0" stroke="${IK}" stroke-width="3" stroke-linecap="round"/></g><circle cx="34" cy="84" r="6" fill="${PV}"/><circle cx="86" cy="84" r="6" fill="${PV}"/><path d="M52 82c4 5 12 5 16 0" stroke="${IK}" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="30" cy="72" rx="6" ry="3.5" fill="${K}"/><ellipse cx="90" cy="72" rx="6" ry="3.5" fill="${K}"/>`),
+blob:sv('120 120',`<path d="M60 26c4-14 20-18 28-10-12 0-20 4-24 14" fill="${PV}"/><path d="M18 72c0-28 18-48 42-48s42 20 42 48c0 24-16 38-42 38S18 96 18 72z" fill="${L}"/><ellipse cx="40" cy="42" rx="9" ry="5" fill="#fff" opacity=".75" transform="rotate(-30 40 42)"/>${eyes(48,74,68)}<path d="M54 88c4 4 10 4 14 0" stroke="${IK}" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="32" cy="82" rx="7" ry="4" fill="${K}"/><ellipse cx="90" cy="82" rx="7" ry="4" fill="${K}"/>`),
+ghost:sv('120 120',`<path d="M50 20c2-12 18-12 20 0" fill="${K}"/><path d="M24 60c0-24 16-42 36-42s36 18 36 42v46c-6 0-9 6-15 6s-9-6-15-6-9 6-15 6-9-6-15-6-9 6-12 6z" fill="${PV}"/><ellipse cx="42" cy="36" rx="8" ry="4.5" fill="#fff" opacity=".35" transform="rotate(-30 42 36)"/>${eyes(48,72,58)}<path d="M54 76c4 4 8 4 12 0" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><path d="M14 70c-6-2-10 4-6 8M106 70c6-2 10 4 6 8" stroke="${PV}" stroke-width="8" stroke-linecap="round"/>`),
+spiky:sv('120 120',`<path d="M36 40l2-26 12 14 10-22 8 22 14-14-2 26z" fill="${L}"/><ellipse cx="60" cy="74" rx="44" ry="38" fill="${K}"/><ellipse cx="38" cy="54" rx="10" ry="5.5" fill="#fff" opacity=".8" transform="rotate(-30 38 54)"/>${eyes(48,72,72)}<ellipse cx="60" cy="94" rx="5" ry="6" fill="${IK}"/><path d="M14 84c-8 0-12 8-6 12M106 84c8 0 12 8 6 12" stroke="${K}" stroke-width="9" stroke-linecap="round"/>`),
+cloud:sv('120 120',`<path d="M30 98c-14 0-22-10-22-21s9-20 20-20c1-16 14-28 30-28 12 0 23 7 27 18 3-1 6-2 9-2 14 0 24 11 24 25s-11 28-26 28z" fill="${LV}"/>${eyes(48,72,66,.9)}<ellipse cx="60" cy="86" rx="4" ry="5" fill="${IK}"/><ellipse cx="36" cy="80" rx="6" ry="3.5" fill="${K}"/><ellipse cx="86" cy="80" rx="6" ry="3.5" fill="${K}"/>`)
+};
+const star=(cx,cy,n,ro,ri)=>{let d='';for(let i=0;i<n*2;i++){const r=i%2?ri:ro,a=Math.PI*i/n-Math.PI/2;d+=(i?'L':'M')+(cx+r*Math.cos(a)).toFixed(1)+' '+(cy+r*Math.sin(a)).toFixed(1)}return d+'Z'};
+const bub='M28 4a24 24 0 1 1-14 43.5L4 52l4-11A24 24 0 0 1 28 4z';
+let chk='';for(let r=0;r<4;r++)for(let c=0;c<4;c++)chk+=`<rect x="${c*12}" y="${r*12}" width="12" height="12" fill="${(r+c)%2?K:W}"/>`;
+const STK={
+sparkle:sv('48 48',`<path d="M24 2c2 12 8 18 22 22-14 4-20 10-22 22-2-12-8-18-22-22 14-4 20-10 22-22z" fill="${L}"/>`),
+sparkleV:sv('48 48',`<path d="M24 2c2 12 8 18 22 22-14 4-20 10-22 22-2-12-8-18-22-22 14-4 20-10 22-22z" fill="${PV}"/>`),
+heart:sv('56 56',`<path d="${bub}" fill="${PV}"/><path d="M28 38s-11-6.5-11-14a6 6 0 0 1 11-3.3A6 6 0 0 1 39 24c0 7.5-11 14-11 14z" fill="${K}"/>`),
+smiley:sv('56 56',`<path d="${bub}" fill="${W}"/><circle cx="28" cy="28" r="14" fill="${L}"/><circle cx="23.5" cy="25" r="2" fill="${IK}"/><circle cx="32.5" cy="25" r="2" fill="${IK}"/><path d="M22 31c3.5 4 8.5 4 12 0" stroke="${IK}" stroke-width="2.4" stroke-linecap="round"/>`),
+checker:sv('48 48',`<g transform="rotate(8 24 24)"><rect x="4" y="4" width="48" height="48" rx="8" fill="${PV}"/>${chk}</g>`),
+pixels:sv('48 48',`<rect x="0" y="16" width="10" height="10" rx="2" fill="${PV}"/><rect x="12" y="4" width="8" height="8" rx="2" fill="${K}"/><rect x="24" y="20" width="12" height="12" rx="3" fill="${L}"/><rect x="38" y="6" width="8" height="8" rx="2" fill="${PV}"/><rect x="14" y="34" width="8" height="8" rx="2" fill="${L}"/>`),
+cloud:sv('80 48',`<path d="M18 44c-9 0-16-6-16-14s7-14 15-14c2-8 10-14 19-14 8 0 15 5 18 12 2-1 4-1 6-1 9 0 16 7 16 16s-7 15-16 15z" fill="${W}"/>`),
+burst:sv('56 56',`<path d="${star(28,28,12,27,19)}" fill="${L}"/><path d="M22 20v10M22 36v.5M33 22c0-3 6-3 6 1 0 3-4 3-4 7M35 36v.5" stroke="${PV}" stroke-width="4" stroke-linecap="round"/>`),
+music:sv('48 48',`<path d="M18 36V10l22-5v26" stroke="${PV}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="37" r="7" fill="${PV}"/><circle cx="35" cy="32" r="7" fill="${PV}"/>`),
+ticket:sv('64 40',`<g transform="rotate(-8 32 20)"><path d="M6 6h52v9a5 5 0 0 0 0 10v9H6v-9a5 5 0 0 0 0-10z" fill="${K}"/><path d="M40 8v24" stroke="${W}" stroke-width="2.5" stroke-dasharray="3 3"/><path d="${star(22,20,5,8,3.5)}" fill="${W}"/></g>`),
+star:sv('48 48',`<path d="${star(24,24,5,22,10)}" fill="#FFDD55"/>`),
+heartShape:sv('48 48',`<path d="M24 42S4 30 4 16a10 10 0 0 1 20-3 10 10 0 0 1 20 3c0 14-20 26-20 26z" fill="${K}"/>`),
+circle:sv('48 48',`<circle cx="24" cy="24" r="20" fill="${L}"/>`),
+squiggle:sv('64 24',`<path d="M4 14c6-10 12 10 18 0s12 10 18 0 12 10 18 0" stroke="${PV}" stroke-width="5" stroke-linecap="round"/>`)
+};
+const WASHI={lime:['#D0FF00','#EEFF9E'],violet:['#8116E0','#B37BF0'],pink:['#FF8ED9','#FFC6EC'],check:['#FF8ED9','#FEFFFC']};
+const washiSvg=k=>{const[a,b]=WASHI[k];let s='';if(k==='check'){for(let r=0;r<3;r++)for(let c=0;c<12;c++)if((r+c)%2)s+=`<rect x="${c*8}" y="${r*8+1}" width="8" height="8" fill="${a}"/>`}else for(let i=-20;i<120;i+=12)s+=`<path d="M${i} 26 L${i+14} 0" stroke="${b}" stroke-width="5"/>`;
+  return `<svg viewBox="0 0 96 26" width="84" height="23" aria-hidden="true"><clipPath id="wc${k}"><path d="M0 2 L4 0 L8 2 L12 0 L16 2 L96 2 L92 6 L96 10 L92 14 L96 18 L92 22 L96 26 L0 26 L4 22 L0 18 L4 14 L0 10 L4 6 Z"/></clipPath><g clip-path="url(#wc${k})" opacity=".85"><rect width="96" height="26" fill="${k==='check'?W:a}"/>${s}</g></svg>`};
+const mas=(k,cls,style,extra='')=>`<div class="m ${cls}" style="${style}">${MASCOT[k]||STK[k]}${extra}</div>`;
+
+/* ================= data (sample) ================= */
+const CATS=[['all','ทั้งหมด'],['concert','🎵 คอนเสิร์ต'],['art','🎨 อาร์ตแฟร์'],['food','🍜 ฟู้ดเฟส'],['anime','🎮 อนิเมะ/เกม']];
+/* ================================================================
+   ข้อมูลอีเว้นต์ — แก้/เพิ่มงานเองได้ที่นี่ (หนึ่งก้อน {...} = หนึ่งงาน)
+   id        ชื่อเรียกภายใน ภาษาอังกฤษ ไม่ซ้ำกัน เช่น 'myconcert'
+   title     ชื่องาน              cat   หมวด: concert / art / food / anime
+   meta      ข้อความเล็กบนการ์ด    venue / venueFull  สถานที่ (สั้น / เต็ม)
+   day, mon  วันที่บนป้าย เช่น '15','พ.ย.'   date, time  วันที่และเวลาเต็ม
+   emoji     ไอคอนแทนรูป (ใช้เมื่อไม่มี img)   color  สีพื้นการ์ด
+   img       (ไม่บังคับ) รูปปกงาน เช่น 'concert.jpg' (ไฟล์วางคู่กับหน้าเว็บ)
+             หรือ 'data:image/jpeg;base64,...' หรือ 'https://...' (ถ้าโฮสต์เอง)
+   price, priceSub, hot   ราคา / หมายเหตุราคา / จำนวนคนสนใจ
+   badges    ป้ายสถานีบนการ์ด [['mrt','MRT สามย่าน'],['walk','2 นาที']]
+             โหมด: bts, bts-silom, gold, mrt, mrt-purple, pink, bus, boat, walk, shuttle
+   how       กล่อง "ไปยังไงดี?" [[โหมด, ชื่อ, คำอธิบาย], ...]
+   tip       ทริคจากเพื่อน ๆ
+   tiers     (ไม่บังคับ) ประเภทบัตร [['บัตรทั่วไป',350],['บัตร VIP',590]] · ไม่ใส่ = ลงทะเบียนฟรี
+   routes    เส้นทาง: {tag, cover(% หลังคา), steps:[[โหมด, หัวข้อ, รายละเอียด, นาที, ค่ารถ], ..., ['arrive', ...]]}
+   ================================================================ */
+const EVENTS=[
+{id:'indie',title:'Bangkok Indie Fest 2026',cat:'concert',meta:'คอนเสิร์ต · ฟรี!',venue:'สามย่านมิตรทาวน์',venueFull:'สามย่านมิตรทาวน์ ชั้น 5',day:'15',mon:'พ.ย.',date:'เสาร์ 15 พ.ย. 2026',time:'16:00 – 23:00 น.',emoji:'🎸',color:'var(--violet-200)',price:'เข้าฟรี',priceSub:'ลงทะเบียนล่วงหน้าในแอป',hot:'1.2k',badges:[['mrt','MRT สามย่าน'],['walk','2 นาที']],
+ how:[['mrt','MRT สามย่าน','ทางออก 2 เชื่อมตรงเข้าห้าง · เดิน 2 นาที'],['bts-silom','BTS ศาลาแดง','ต่อ MRT สีลม 1 สถานี หรือเดิน 15 นาที'],['bus','สาย 21, 47, 141','ป้ายจามจุรีสแควร์ · เดิน 3 นาที']],
+ tip:'ช่วง 17:00–19:00 MRT คนแน่นมาก ถ้ามาจากสยามเดินผ่านจุฬาฯ ได้ ร่มรื่นกว่า ใช้เวลา 15 นาที ☂️',
+ routes:[
+  {tag:'⚡ เร็วสุด',cover:90,steps:[['walk','เดินไปชานชาลา BTS สายสีลม','สถานีสยาม ชั้น 3 · ฝั่งไปบางหว้า',2],['bts-silom','ขึ้น BTS สยาม → ศาลาแดง','ทิศทางบางหว้า · 2 สถานี',5,30],['walk','เปลี่ยนไป MRT สีลม ทางออก 4','ใช้ Skywalk ไม่ต้องลงถนน ☂️',4],['mrt','ขึ้น MRT สีลม → สามย่าน','ทิศทางหัวลำโพง · 1 สถานี',3,17],['arrive','ถึงแล้ว! สามย่านมิตรทาวน์ 🎉','ทางออก 2 เชื่อมเข้าห้าง ขึ้นลิฟต์ไปชั้น 5']]},
+  {tag:'💸 ประหยัดสุด',cover:40,steps:[['walk','เดินไปป้ายรถเมล์หน้าสยามสแควร์','ฝั่งถนนพระราม 1',4],['bus','ขึ้นรถเมล์สาย 47 → ป้ายจามจุรีสแควร์','รถร้อน · 6 ป้าย · มาทุก 10–15 นาที',18,8],['walk','เดินไปสามย่านมิตรทาวน์','ข้ามสะพานลอยหน้าจามจุรีสแควร์',3],['arrive','ถึงแล้ว! สามย่านมิตรทาวน์ 🎉','ประตูฝั่งถนนพระราม 4']]},
+  {tag:'🚶 เดินน้อยสุด',cover:85,steps:[['walk','เดินไปป้ายหน้าสยามพารากอน','ป้ายอยู่หน้าทางเข้าห้าง',1],['bus','ขึ้นรถเมล์ไฟฟ้าสาย 21 → ป้ายสามย่าน','รถแอร์ · จอดหน้าสามย่านมิตรทาวน์',16,20],['arrive','ถึงแล้ว! สามย่านมิตรทาวน์ 🎉','ลงรถแล้วเข้าห้างได้เลย']]}]},
+{id:'popcon',title:'Pop Culture Con',cat:'anime',meta:'อนิเมะ/เกม · ฿350',venue:'IMPACT เมืองทองธานี',venueFull:'IMPACT Arena Hall 5–6',day:'22',mon:'พ.ย.',date:'เสาร์ 22 พ.ย. 2026',time:'10:00 – 20:00 น.',emoji:'🎮',color:'var(--lime-200)',price:'บัตร ฿350',priceSub:'ซื้อหน้างานได้',hot:'3.4k',badges:[['pink','MRT สีชมพู'],['walk','5 นาที']],
+ how:[['pink','MRT สีชมพู อิมแพ็ค','สถานีอิมแพ็ค เมืองทองธานี · เดิน 5 นาที'],['bus','สาย 166','จากอนุสาวรีย์ชัยฯ · ลงหน้าอิมแพ็ค'],['shuttle','Shuttle ฟรี','จาก BTS หมอชิต ทุก 20 นาที']],
+ tip:'หลังงานเลิก คิวรถตู้ยาวมาก แนะนำ MRT สีชมพู ไปลงวัดพระศรีมหาธาตุแล้วต่อ BTS',
+ routes:[
+  {tag:'⚡ เร็วสุด',cover:80,steps:[['walk','เดินไปชานชาลา BTS สายสุขุมวิท','สถานีสยาม · ฝั่งไปคูคต',2],['bts','ขึ้น BTS สยาม → วัดพระศรีมหาธาตุ','ทิศทางคูคต · 18 สถานี',36,59],['walk','เปลี่ยนไป MRT สีชมพู','ทางเชื่อมในสถานี',4],['pink','ขึ้น MRT สีชมพู → อิมแพ็ค เมืองทองธานี','สายแยกเมืองทองธานี · 4 สถานี',14,34],['arrive','ถึงแล้ว! IMPACT Arena 🎉','เดินตามป้าย Hall 5–6 ประมาณ 5 นาที']]},
+  {tag:'💸 ประหยัดสุด',cover:30,steps:[['walk','เดินไปป้ายหน้าสยามสแควร์','ฝั่งถนนพญาไท',3],['bus','ขึ้นรถเมล์สาย 29 → อนุสาวรีย์ชัยฯ','8 ป้าย',20,8],['bus','ต่อรถเมล์สาย 166 → อิมแพ็ค','ป้ายเกาะพญาไท',50,15],['arrive','ถึงแล้ว! IMPACT Arena 🎉','ลงป้ายหน้าอิมแพ็ค']]},
+  {tag:'🚶 เดินน้อยสุด',cover:75,steps:[['bts','ขึ้น BTS สยาม → หมอชิต','ทิศทางคูคต · 8 สถานี',16,47],['walk','เดินไปจุดขึ้น Shuttle','ทางออก 1 ลานจอดรถ',3],['shuttle','ขึ้น Shuttle bus ฟรี → อิมแพ็ค','รถออกทุก 20 นาที',40,0],['arrive','ถึงแล้ว! IMPACT Arena 🎉','รถจอดหน้า Hall 5']]}]},
+{id:'river',title:'ตลาดศิลป์ริมน้ำ',cat:'art',meta:'อาร์ตแฟร์ · ฟรี',venue:'ท่ามหาราช',venueFull:'ท่ามหาราช ริมเจ้าพระยา',day:'29',mon:'พ.ย.',date:'เสาร์ 29 พ.ย. 2026',time:'15:00 – 22:00 น.',emoji:'🎨',color:'var(--yellow)',price:'เข้าฟรี',priceSub:'มีเวิร์กช็อปเสียเงิน',hot:'860',badges:[['boat','ท่ามหาราช'],['walk','1 นาที']],
+ how:[['boat','เรือด่วนธงส้ม','ลงท่ามหาราช · เดิน 1 นาที'],['bus','สาย 47, 53','ป้ายท่าช้าง · เดิน 5 นาที']],
+ tip:'ไปช่วงเย็นแดดไม่แรง เรือด่วนธงส้มเที่ยวสุดท้ายประมาณ 19:00 วางแผนขากลับด้วยนะ',
+ routes:[
+  {tag:'⚡ เร็วสุด',cover:60,steps:[['bts-silom','ขึ้น BTS สยาม → สะพานตากสิน','ทิศทางบางหว้า · 7 สถานี',14,40],['walk','เดินไปท่าเรือสาทร','ทางออก 2',2],['boat','ขึ้นเรือด่วนธงส้ม สาทร → ท่ามหาราช','ทิศทางนนทบุรี · 7 ท่า',22,16],['arrive','ถึงแล้ว! ตลาดศิลป์ริมน้ำ 🎉','ลานกิจกรรมริมน้ำ']]},
+  {tag:'💸 ประหยัดสุด',cover:20,steps:[['walk','เดินไปป้ายหน้าสยามสแควร์','ฝั่งถนนพระราม 1',3],['bus','ขึ้นรถเมล์สาย 47 → ท่าช้าง','12 ป้าย',38,8],['walk','เดินไปท่ามหาราช','ตามถนนมหาราช',5],['arrive','ถึงแล้ว! ตลาดศิลป์ริมน้ำ 🎉','ลานกิจกรรมริมน้ำ']]}]},
+{id:'siam',title:'Siam Night Market',cat:'food',meta:'ฟู้ดเฟส · 18:00',venue:'BTS สยาม · ลานหน้าห้าง',venueFull:'ลานหน้าสยามพารากอน',day:'16',mon:'พ.ย.',date:'อาทิตย์ 16 พ.ย. 2026',time:'18:00 – 24:00 น.',emoji:'🌙',color:'var(--pink)',price:'เข้าฟรี',priceSub:'ของกินเริ่ม ฿40',hot:'2.1k',badges:[['bts','BTS สยาม']],
+ how:[['bts','BTS สยาม','ทางออก 3 · เดิน 1 นาที']],tip:'ร้านดังคิวยาวตั้งแต่ 19:00 มาเร็วหน่อยได้กินครบ',
+ routes:[{tag:'🚶 เดินนิดเดียว',cover:100,steps:[['walk','เดินไปทางออก 3','ใช้ Skywalk ไปลานหน้าห้าง',3],['arrive','ถึงแล้ว! Siam Night Market 🎉','ลานกิจกรรมหน้าสยามพารากอน']]}]},
+{id:'jazz',title:'Jazz in the Park',cat:'concert',meta:'คอนเสิร์ต · 17:30',venue:'สวนเบญจกิติ',venueFull:'ลานหญ้าสวนเบญจกิติ',day:'18',mon:'พ.ย.',date:'อังคาร 18 พ.ย. 2026',time:'17:30 – 21:00 น.',emoji:'🎷',color:'var(--lime-200)',price:'เข้าฟรี',priceSub:'พกเสื่อมาเองได้',hot:'940',badges:[['mrt','MRT ศูนย์สิริกิติ์']],
+ how:[['mrt','MRT ศูนย์สิริกิติ์','ทางออก 3 · เดิน 5 นาที']],tip:'ยุงเยอะช่วงค่ำ อย่าลืมยากันยุง 🦟',
+ routes:[{tag:'⚡ เร็วสุด',cover:70,steps:[['bts','ขึ้น BTS สยาม → อโศก','ทิศทางเคหะฯ · 4 สถานี',8,37],['walk','เปลี่ยนไป MRT สุขุมวิท','ทางเชื่อมใต้ดิน',4],['mrt','ขึ้น MRT สุขุมวิท → ศูนย์สิริกิติ์','ทิศทางหลักสอง · 1 สถานี',3,17],['walk','เดินเข้าสวนเบญจกิติ','ทางออก 3',5],['arrive','ถึงแล้ว! Jazz in the Park 🎉','ลานหญ้าริมน้ำ']]},
+  {tag:'💸 ประหยัดสุด',cover:30,steps:[['walk','เดินไปป้ายหน้าสยามสแควร์','ฝั่งถนนพระราม 1',3],['bus','ขึ้นรถเมล์สาย 136 → ป้ายศูนย์สิริกิติ์','10 ป้าย',28,8],['arrive','ถึงแล้ว! Jazz in the Park 🎉','เดินเข้าสวน 3 นาที']]}]},
+{id:'beer',title:'Thai Craft Beer Fest',cat:'food',meta:'ฟู้ดเฟส · 16:00',venue:'ไอคอนสยาม',venueFull:'ลานริเวอร์พาร์ค ไอคอนสยาม',day:'21',mon:'พ.ย.',date:'ศุกร์ 21 พ.ย. 2026',time:'16:00 – 23:00 น.',emoji:'🍻',color:'var(--yellow)',price:'บัตร ฿290',priceSub:'20+ เท่านั้น',hot:'1.5k',badges:[['gold','สายสีทอง เจริญนคร']],
+ how:[['gold','สายสีทอง เจริญนคร','เชื่อมตรงเข้าห้าง'],['boat','เรือรับส่งฟรี','จากท่าสาทร ทุก 15 นาที']],tip:'ดื่มแล้วอย่าขับ ขากลับใช้รถไฟฟ้าสายสีทองเที่ยวสุดท้าย 24:00',
+ routes:[{tag:'⚡ เร็วสุด',cover:95,steps:[['bts-silom','ขึ้น BTS สยาม → กรุงธนบุรี','ทิศทางบางหว้า · 8 สถานี',16,44],['walk','เปลี่ยนไปสายสีทอง','ทางเชื่อมในสถานี',2],['gold','ขึ้นสายสีทอง กรุงธนบุรี → เจริญนคร','1 สถานี',3,16],['arrive','ถึงแล้ว! ไอคอนสยาม 🎉','ลานริเวอร์พาร์ค ชั้น G']]},
+  {tag:'💸 ประหยัดสุด',cover:50,steps:[['bts-silom','ขึ้น BTS สยาม → สะพานตากสิน','7 สถานี',14,40],['walk','เดินไปท่าเรือสาทร','ทางออก 2',2],['boat','ขึ้นเรือรับส่งฟรี → ไอคอนสยาม','ทุก 15 นาที',10,0],['arrive','ถึงแล้ว! ไอคอนสยาม 🎉','ท่าเรือหน้าห้าง']]}]}
+];
+const POSTS=[
+{id:1,name:'มายด์ ไปทุกคอน',meta:'2 ชม. ที่แล้ว · 📍 IMPACT Arena',tag:'หาเพื่อนไปด้วย',av:'🐰',avc:'var(--pink)',body:'ใครไป Pop Culture Con วันเสาร์บ้าง~ จะนั่ง MRT สีชมพูจากแคราย ประมาณบ่าย 2 หาเพื่อนนั่งไปด้วยกัน 🙌',likes:128,comments:24},
+{id:2,name:'ต้นกล้า.trip',meta:'5 ชม. ที่แล้ว · 📍 สามย่านมิตรทาวน์',tag:'ถามทาง',av:'🐸',avc:'var(--lime-200)',body:'จาก BTS สยามไปสามย่านมิตรทาวน์ เดินไหวไหม? หรือต่อ MRT ดีกว่า แดดร้อนมากก 🥵',likes:56,comments:31},
+{id:3,name:'นุ่น ชอบอาร์ต',meta:'เมื่อวาน · 📍 ท่ามหาราช',tag:'แชร์รูป',av:'🦄',avc:'var(--yellow)',body:'นั่งเรือด่วนไปตลาดศิลป์ริมน้ำมา วิวสวยมาก ค่าเรือแค่ 16 บาท แนะนำไปช่วงเย็น ๆ 🌅',likes:342,comments:47,img:['⛵🌅','var(--sky)']},
+{id:4,name:'บีม ฟังแจ๊ส',meta:'2 วันที่แล้ว · 📍 สวนเบญจกิติ',tag:'รีวิวงาน',av:'🐻',avc:'var(--violet-200)',body:'Jazz in the Park ปีนี้ดีมาก เสียงดี คนไม่แน่น ลง MRT ศูนย์สิริกิติ์ทางออก 3 เดินนิดเดียวถึง ⭐⭐⭐⭐⭐',likes:89,comments:12}];
+const TAGCLS={'หาเพื่อนไปด้วย':'','ถามทาง':'q','รีวิวงาน':'r','แชร์รูป':'p'};
+const DIARY=[
+{c:'var(--lime-200)',day:'12',mon:'ต.ค.',title:'วันที่ได้เจอเมน',mood:'😍',note:'ยืนรอ 3 ชม. คุ้มมาก! ขากลับ MRT คนแน่นสุด ๆ ครั้งหน้าจะออกก่อนจบ 1 เพลง',ev:'LANY Live in BKK',mode:['pink','MRT สีชมพู'],link:'popcon'},
+{c:'var(--yellow)',day:'05',mon:'ต.ค.',title:'ตลาดศิลป์ริมน้ำ',mood:'🥳',note:'นั่งเรือด่วนครั้งแรก! ได้โปสการ์ดมา 4 ใบ ร้านชาไทยข้างท่าเรืออร่อยมาก',ev:'Riverside Art Market',mode:['boat','เรือด่วน'],link:'river'},
+{c:'var(--violet-200)',day:'28',mon:'ก.ย.',title:'หลงทางนิดหน่อย',mood:'🤯',note:'ลงผิดฝั่งที่หมอชิต เดินวนไป 10 นาที 555 สรุปขึ้นรถเมล์ 77 ถึงพอดีเปิดงาน',ev:'Bangkok Comic Con',mode:['bus','สาย 77'],link:'popcon'}];
+
+/* ================= state ================= */
+const S={tickets:{},buy:{tier:0,qty:1,pay:'promptpay'},view:'welcome',event:'indie',cat:'all',q:'',saved:new Set(),route:0,reverse:false,navStep:-1,ctab:'ทั้งหมด',cq:'',liked:new Set(),posts:POSTS.slice(),day:'12',mood:3,sheet:null,history:[]};
+const $=(s,r=document)=>r.querySelector(s);
+const phone=$('#phone');
+const VIEWS=[['welcome','Welcome'],['login','เข้าสู่ระบบ'],['register','สมัครสมาชิก'],['home','หน้าแรก'],['event','รายละเอียดงาน'],['route','วิธีเดินทาง'],['community','คอมมู'],['diary','ไดอารี่'],['notebook','สมุดบันทึก']];
+const ev=()=>EVENTS.find(e=>e.id===S.event)||EVENTS[0];
+const statusbar=(dark)=>`<div class="statusbar" style="color:${dark?'var(--on-dark)':'var(--ink)'}"><span>9:41</span><span><i></i><i></i><i></i></span></div>`;
+const NAVS=[['home','home','หน้าแรก'],['events','ticket','อีเว้นต์'],['route','route','เส้นทาง'],['community','users','คอมมู'],['diary','book','ไดอารี่']];
+const nav=cur=>`<nav class="nav" aria-label="เมนูหลัก">${NAVS.map(([v,ic,l])=>`<button data-go="${v}" ${cur===v?'aria-current="page"':''}>${I(ic)}${l}</button>`).join('')}</nav>`;
+function toast(t){const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=t;phone.appendChild(d);setTimeout(()=>d.remove(),2300)}
+
+/* ================= render: welcome ================= */
+function vWelcome(){return `<section class="screen" data-v="welcome"><div class="scroll">
+<div class="wart">${statusbar(1)}
+ <div class="blob"></div><div class="ring"></div><div class="circle"></div>
+ ${mas('cloud','','left:250px;top:62px;width:110px;height:66px','')}${mas('ticket','','left:18px;top:54px;width:62px;height:40px;transform:rotate(-14deg)')}
+ ${mas('cloud','a-drift','left:28px;top:118px;width:96px;height:96px')}
+ ${mas('smiley','a-pop','left:62px;top:86px;width:44px;height:44px')}
+ ${mas('music','a-sway','left:246px;top:118px;width:34px;height:34px')}
+ ${mas('heart','a-pulse','left:276px;top:176px;width:50px;height:50px')}
+ ${mas('train','a-train','left:110px;top:170px;width:170px;height:170px')}
+ ${mas('spiky','a-wiggle','left:8px;top:296px;width:106px;height:106px')}
+ ${mas('ghost','a-float','left:262px;top:248px;width:100px;height:100px')}
+ ${mas('sparkle','a-twinkle','left:318px;top:136px;width:34px;height:34px')}${mas('sparkle','a-twinkle d2','left:158px;top:96px;width:22px;height:22px')}${mas('sparkleV','a-twinkle d3','left:222px;top:396px;width:26px;height:26px')}
+ ${mas('checker','','left:298px;top:376px;width:46px;height:46px;transform:rotate(12deg)')}${mas('pixels','','left:140px;top:384px;width:36px;height:36px')}
+</div>
+<div class="wbody">
+ <span class="pillnote" style="background:var(--lime);box-shadow:none;align-self:flex-start">✨ สำหรับสายอีเว้นต์ที่ไม่มีรถ</span>
+ <h1 class="h-xl">ไปงานไหน ก็ถึง! 🚇</h1>
+ <p class="small" style="margin:0;font-size:15px">รวมอีเว้นต์ทั่วกรุงเทพฯ บอกทางด้วยรถไฟฟ้า รถเมล์ เรือ แชร์กับเพื่อนในคอมมู และจดไดอารี่สนุก ๆ ไว้ในที่เดียว</p>
+ <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+</div></div>
+<div class="wact"><button class="btn lime block" data-go="home">เริ่มเลย!</button><button class="btn white block" data-go="login">มีบัญชีแล้ว · เข้าสู่ระบบ</button></div>
+</section>`}
+
+/* ================= render: home ================= */
+const bg=e=>e.img?`background:${e.color} center/cover no-repeat url('${e.img}')`:`background:${e.color}`;
+const ecard=e=>`<div class="ecard" role="group"><button class="cover" data-event="${e.id}" style="${bg(e)}" aria-label="ดูรายละเอียด ${esc(e.title)}">${e.img?'':`<span aria-hidden="true">${e.emoji}</span>`}</button>
+ <div class="datebadge" style="pointer-events:none"><b>${e.day}</b><span>${e.mon}</span></div>
+ <button class="savebtn" data-save="${e.id}" aria-pressed="${S.saved.has(e.id)}" aria-label="บันทึกงานนี้">${I('bookmark')}</button>
+ <button class="body" data-event="${e.id}" style="text-align:left"><span class="meta">${e.meta}</span><span class="h-m">${esc(e.title)}</span><span class="venue">${I('pin')}${esc(e.venue)}</span><span class="badges">${e.badges.map(b=>tb(...b)).join('')}</span></button></div>`;
+const crow=e=>`<button class="crow" data-event="${e.id}"><span class="thumb" style="${bg(e)}" aria-hidden="true">${e.img?'':e.emoji}</span><span class="info"><span class="meta">${e.day} ${e.mon} · ${e.time.split(' ')[0]}</span><span class="title">${esc(e.title)}</span><span class="venue">${I('pin')}${esc(e.venue)}</span><span class="badges">${tb(...e.badges[0])}</span></span></button>`;
+function filtered(){const q=S.q.trim().toLowerCase();return EVENTS.filter(e=>(S.cat==='all'||e.cat===S.cat)&&(!q||(e.title+e.venue+e.meta+e.badges.map(b=>b[1]).join('')).toLowerCase().includes(q)))}
+function homeLists(){const list=filtered();
+ const hot=list.slice(0,3),near=list.slice(3).length?list.slice(3):list.slice(0,3);
+ if(!list.length) return `<div class="pad"><div class="empty">ไม่เจออีเว้นต์ที่ตรงกับ “${esc(S.q)}” ลองค้นด้วยชื่อสถานี เช่น “สยาม” หรือเลือกหมวดอื่น</div></div>`;
+ return `<div class="pad sechead"><h2 class="h-m">🔥 ฮอตสัปดาห์นี้</h2><span class="cap">${list.length} งาน</span></div><div class="carousel">${hot.map(ecard).join('')}</div>
+ <div class="gap16"></div><div class="pad stack" id="near"><div class="sechead"><h2 class="h-m">🚇 ใกล้สถานีรถไฟฟ้า</h2></div>${near.map(crow).join('')}</div>`}
+function vHome(){return `<section class="screen" data-v="home"><div class="scroll">
+<div class="hero">${statusbar()}
+ <div class="pad stack" style="gap:16px">
+  <div class="row between" style="align-items:flex-start"><div><div style="font-size:15px">สวัสดี ${esc(S.user||'มายด์')} 👋</div><h1 class="h-xl">วันนี้ไปงานไหนดี?</h1></div><button class="round" data-toast="ยังไม่มีการแจ้งเตือนใหม่" aria-label="การแจ้งเตือน">${I('bell')}</button></div>
+  <label class="search"><span class="sr">ค้นหา</span>${I('search')}<input id="q" type="search" placeholder="ค้นหาอีเว้นต์ / สถานี / ศิลปิน" value="${esc(S.q)}" autocomplete="off"><span class="go" aria-hidden="true">${I('filter')}</span></label>
+  <span class="pillnote" style="align-self:flex-start">${I('sun')} 34° แดดแรงมาก · พกน้ำ + ร่มด้วยนะ</span>
+ </div>
+ ${mas('spiky','','left:auto;right:16px;bottom:-10px;width:78px;height:78px;transform:rotate(-8deg)')}${mas('sparkleV','','right:118px;top:62px;width:22px;height:22px')}
+</div>
+<div class="gap16"></div>
+<div class="chips" role="group" aria-label="หมวดหมู่">${CATS.map(([k,l])=>`<button class="chip" data-cat="${k}" aria-pressed="${S.cat===k}">${l}</button>`).join('')}</div>
+<div class="gap16"></div>
+<div class="pad"><div class="promo">${mas('sparkle','','right:14px;top:-10px;width:26px;height:26px')}<div class="stack" style="gap:8px;flex:1;min-width:0"><h2 class="h-m">ไปงานไหนก็ถึง! 🚇</h2><p>บอกแค่ชื่องาน เดี๋ยวเราบอกทางให้ครบ รถไฟฟ้า รถเมล์ เรือ ค่ารถเท่าไหร่</p><button class="btn lime" data-route="indie" style="align-self:flex-start">${I('route')}เริ่มวางแผนเดินทาง</button></div><div class="fit" style="width:92px;height:92px;flex:none">${MASCOT.train}</div></div></div>
+<div class="gap16"></div>
+<div class="pad"><button class="randcard" data-random><span class="dice" aria-hidden="true">🎲</span><span style="flex:1;min-width:0"><span class="h-s" style="display:block">ไม่รู้จะไปงานไหนดี?</span><span class="small">กดให้เราสุ่มอีเว้นต์ให้เลย!</span></span>${I('chev')}</button></div>
+<div class="gap24"></div>
+<div id="homelists">${homeLists()}</div>
+<div class="gap24"></div></div>${nav('home')}</section>`}
+
+/* ================= render: event detail ================= */
+function vEvent(){const e=ev();return `<section class="screen" data-v="event"><div class="scroll">
+<div class="cover-big" style="background:${e.color}">${statusbar()}
+ <div class="topbar"><button class="round" data-back aria-label="ย้อนกลับ">${I('back')}</button><h1 class="h-m">รายละเอียดงาน</h1><button class="round" data-share aria-label="แชร์">${I('share')}</button></div>
+ ${e.img?`<div class="cover-photo" style="background-image:url('${e.img}')" role="img" aria-label="ภาพงาน ${esc(e.title)}"></div>`:`<div class="cover-emoji" aria-hidden="true">${e.emoji}</div>`}
+ ${mas('music','','left:40px;top:120px;width:34px;height:34px;transform:rotate(-12deg)')}${mas('sparkle','','right:60px;top:118px;width:26px;height:26px')}${mas('cloud','','left:-14px;bottom:4px;width:72px;height:44px')}${mas('blob','','right:16px;bottom:-14px;width:84px;height:84px;transform:rotate(6deg)')}
+</div>
+<div class="pad stack" style="padding-top:18px">
+ <div class="row" style="flex-wrap:wrap">${[CATS.find(c=>c[0]===e.cat)[1],e.price,'🔥 '+e.hot+' สนใจ'].map((t,i)=>`<span class="chip" style="${i?'':'background:var(--violet);color:var(--on-dark)'}">${t}</span>`).join('')}</div>
+ <h2 class="h-l">${esc(e.title)}</h2>
+ ${[['calendar',e.date,e.time],['pin',e.venueFull,e.venue],['ticket',e.price,e.priceSub]].map(([ic,a,b])=>`<div class="inforow"><span class="ib">${I(ic)}</span><div><div style="font-weight:600">${a}</div><div class="small">${b}</div></div></div>`).join('')}
+</div>
+<div class="gap24"></div>
+<div class="pad"><div class="card stack">
+ <div class="row between"><h3 class="h-m">🚇 ไปยังไงดี?</h3><span class="tag" style="background:var(--lime);color:var(--ink)">เดินทางง่าย ✓</span></div>
+ ${e.how.map(([m,l,d])=>`<div class="howrow">${tb(m,l)}<span class="small" style="min-width:0">${d}</span></div>`).join('')}
+ <button class="btn lime block" data-route="${e.id}">${I('route')}ดูเส้นทางจากที่ฉันอยู่</button>
+</div></div>
+<div class="gap16"></div>
+<div class="pad"><div class="tip"><span class="round">${I('bulb')}</span><div><h3 class="h-s">ทริคจากเพื่อน ๆ</h3><p class="small" style="margin:0;color:var(--ink)">${e.tip}</p></div></div></div>
+<div class="gap24"></div>
+<div class="pad stack"><div class="sechead"><h3 class="h-m">💬 คนที่จะไป</h3><button class="link" data-go="community">ดูทั้งหมด ${I('chev','ico')}</button></div>${postHtml(S.posts[0],true)}</div>
+<div class="gap24"></div></div>
+<div class="actionbar"><button class="round" style="width:48px;height:48px" data-go="diary" aria-label="บันทึกลงไดอารี่">${I('book')}</button>${S.tickets[e.id]?`<button class="btn lime" style="flex:1" data-myticket>${I('check')}บัตรของฉัน</button>`:`<button class="btn lime" style="flex:1;white-space:nowrap;padding:0 14px" data-buy>${I('ticket')}${tiersOf(e)[0][1]?'ซื้อบัตร '+baht(Math.min(...tiersOf(e).map(t=>t[1]))):'ลงทะเบียนฟรี'}</button>`}<button class="btn violet" style="white-space:nowrap;padding:0 16px" data-route="${e.id}">${I('route')}ไปกันเลย!</button></div></section>`}
+
+/* ================= render: route ================= */
+function curRoute(){const e=ev();const r=e.routes[Math.min(S.route,e.routes.length-1)];if(!S.reverse)return r;
+ const st=r.steps.filter(s=>s[0]!=='arrive').slice().reverse().map(s=>{const t=s.slice();const rail=!['walk','bus','boat','shuttle'].includes(t[0]);if(t[1].includes('→'))t[1]=rail?t[1].replace(/(.*?)(\S+)\s*→\s*(.+)$/,(m,a,b,c)=>a+c+' → '+b):t[1].replace(/\s*→.*$/,'')+' (ขากลับ)';else if(t[0]==='walk')t[1]='เดินต่อไปจุดเปลี่ยนรถ';return t});
+ return {tag:r.tag,cover:r.cover,steps:[['walk','ออกจาก '+e.venue,'เดินไปจุดขึ้นรถ',2],...st,['arrive','ถึงแล้ว! BTS สยาม 🏠','กลับถึงจุดเริ่มต้น']]}}
+const sumOf=r=>{const t=r.steps.reduce((a,s)=>a+(s[3]||0),0),f=r.steps.reduce((a,s)=>a+(s[4]||0),0),tr=r.steps.filter(s=>!['walk','arrive'].includes(s[0])).length,w=r.steps.filter(s=>s[0]==='walk').reduce((a,s)=>a+s[3],0);return{t,f,tr,w}};
+const hhmm=m=>{const d=new Date(2026,10,15,16,10+m);return d.toTimeString().slice(0,5)};
+function mapSvg(r){const segs=r.steps.filter(s=>s[0]!=='arrive');const n=segs.length;const pts=[];for(let i=0;i<=n;i++){const x=40+i*(280/n),y=36+Math.sin(i*1.3)*24+i*(70/n);pts.push([x,y])}
+ let p='';segs.forEach((s,i)=>{const[a,b]=[pts[i],pts[i+1]];const c=MODE_COLOR[s[0]].replace(/var\((--[\w-]+)\)/,(m,v)=>getComputedStyle(document.documentElement).getPropertyValue(v).trim());const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2-14;p+=`<path d="M${a[0]} ${a[1]} Q${mx} ${my} ${b[0]} ${b[1]}" stroke="${c}" stroke-width="${s[0]==='walk'?5:7}" fill="none" stroke-linecap="round" ${s[0]==='walk'?'stroke-dasharray="2 9"':''}/>`});
+ const dots=pts.slice(1,-1).map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6" fill="#fff" stroke="#1D0B36" stroke-width="3"/>`).join('');const[s0,e0]=[pts[0],pts[n]];
+ return `<svg viewBox="0 0 358 150" role="img" aria-label="แผนที่เส้นทางแบบย่อ"><rect width="358" height="150" fill="#EAFBF1"/><path d="M0 40H358M0 98H358M70 0V150M190 0V150M290 0V150" stroke="#C9F5DA" stroke-width="10"/>${p}${dots}<circle cx="${s0[0]}" cy="${s0[1]}" r="10" fill="#D0FF00" stroke="#1D0B36" stroke-width="3"/><path d="M${e0[0]} ${e0[1]-30}c9 0 15 7 15 15 0 11-15 22-15 22s-15-11-15-22c0-8 6-15 15-15z" fill="#8116E0" stroke="#1D0B36" stroke-width="3" transform="translate(0 8)"/><circle cx="${e0[0]}" cy="${e0[1]-7}" r="5" fill="#fff"/></svg>`}
+function vRoute(){const e=ev(),r=curRoute(),s=sumOf(r);const from=S.reverse?e.venue:'📍 ตำแหน่งของฉัน (BTS สยาม)',to=S.reverse?'BTS สยาม':e.venueFull;
+ const nav0=S.navStep>=0;
+ return `<section class="screen" data-v="route"><div class="scroll" id="rscroll">
+${statusbar()}
+<div class="topbar"><button class="round" data-back aria-label="ย้อนกลับ">${I('back')}</button><h1 class="h-m">วิธีเดินทาง</h1><button class="round" data-share aria-label="แชร์เส้นทาง">${I('share')}</button></div>
+${nav0?`<div class="navbanner" role="status"><div class="row between"><span class="cap" style="color:var(--violet-200)">กำลังนำทาง · ขั้นที่ ${S.navStep+1}/${r.steps.length}</span><button data-endnav style="color:var(--violet-200);font-size:13px;font-weight:600">จบการนำทาง</button></div><div class="h-s">${esc(r.steps[S.navStep][1])}</div><div class="bar"><span style="width:${(S.navStep+1)/r.steps.length*100}%"></span></div><div class="row"><button class="prev" data-step="-1" ${S.navStep===0?'disabled style="opacity:.4"':''}>ก่อนหน้า</button><button class="next" data-step="1">${S.navStep===r.steps.length-1?'ถึงแล้ว 🎉':'ขั้นต่อไป'}</button></div></div><div class="gap8"></div>`:''}
+<div class="pad stack">
+ <div class="rinput"><div class="stack" style="gap:10px;flex:1;min-width:0">
+  <div class="row" style="gap:10px"><span class="dot" style="background:var(--lime);box-shadow:0 0 0 2px var(--ink)"></span><div style="min-width:0"><div class="cap">จาก</div><div style="font-weight:600;font-size:14px">${esc(from)}</div></div></div>
+  <div class="row" style="gap:10px"><span class="dot" style="background:var(--violet)"></span><div style="min-width:0"><div class="cap">ไป</div><div style="font-weight:600;font-size:14px">${esc(to)} · ${esc(e.title)}</div></div></div></div>
+  <button class="round sm" style="background:var(--violet-50);color:var(--violet-700)" data-swap aria-label="สลับต้นทางและปลายทาง">${I('swap')}</button></div>
+ <div class="map">${mapSvg(r)}<div class="m" style="left:14px;bottom:6px;width:52px;height:52px">${MASCOT.train}</div></div>
+ <div class="row between"><h2 class="h-m">เลือกแบบที่ใช่</h2><span class="cap">${e.routes.length} ทางเลือก</span></div>
+</div>
+<div class="opts" role="group" aria-label="ทางเลือกการเดินทาง">${e.routes.map((ro,i)=>{const x=sumOf(ro);const ms=ro.steps.filter(z=>z[0]!=='arrive').map(z=>I(MODE_ICON[z[0]])).join(`<svg class="sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">${P.chev}</svg>`);return `<button class="opt" data-opt="${i}" aria-pressed="${S.route===i}"><span style="font-size:12px;font-weight:600">${ro.tag}</span><span class="t">${x.t} นาที</span><span class="modes">${ms}</span><span class="small" style="color:var(--ink)">฿${x.f} · เดิน ${x.w} นาที</span></button>`}).join('')}</div>
+<div class="pad stack">
+ <div class="card stack" style="gap:14px">
+  <div class="row between" style="align-items:flex-end"><div><div class="small">ใช้เวลาประมาณ</div><div class="bigmin">${s.t} นาที</div></div><div style="text-align:right"><div style="font-weight:600;color:var(--violet-700)">ออก 16:10 → ถึง ${hhmm(s.t)}</div><div class="cap">${r.tag}${S.reverse?' · ขากลับ':''}</div></div></div>
+  <div class="jbar" aria-hidden="true">${r.steps.filter(z=>z[3]).map(z=>`<span style="flex:${z[3]};background:${MODE_COLOR[z[0]]}"></span>`).join('')}<span style="flex:2;background:var(--lime)"></span></div>
+  <div class="badges">${r.steps.filter(z=>z[0]!=='arrive').map(z=>tb(z[0],z[0]==='walk'?z[3]+' นาที':z[1].replace(/^ขึ้น|^ต่อ/,'').split('→')[0].trim())).join('')}</div>
+  <div class="stats"><div class="stat" style="background:var(--lime-50)">${I('coin')}<b>฿${s.f}</b><span class="cap">ค่ารถรวม</span></div><div class="stat" style="background:var(--violet-50)">${I('swap')}<b>${Math.max(0,s.tr-1)} ครั้ง</b><span class="cap">ต่อรถ</span></div><div class="stat" style="background:var(--line)">${I('sun')}<b>${r.cover}%</b><span class="cap">มีหลังคา</span></div></div>
+ </div>
+ <div class="gap8"></div>
+ <div class="row between"><h2 class="h-m">👣 ทีละขั้นตอน</h2><span class="cap">${r.steps.length} ขั้นตอน</span></div>
+ <div class="timeline" id="tl">${r.steps.map((z,i)=>{const[m,t,d,min,fare]=z;const last=i===r.steps.length-1;const cls=nav0?(i===S.navStep?'now':i<S.navStep?'done':''):'';
+  return `<div class="step ${cls}" data-i="${i}"><div class="rail"><span class="dotm" style="background:${MODE_COLOR[m]};color:${DARK_ICON.has(m)?'var(--ink)':'var(--on-dark)'}">${I(MODE_ICON[m])}</span>${last?'':`<span class="line ${m==='walk'?'dash':''}" style="background:${MODE_COLOR[m]}"></span>`}</div><div class="ct"><div class="h-s">${esc(t)}</div><div class="small">${esc(d)}</div>${min?`<span class="durp">${I('clock','ico')}${min} นาที${fare!==undefined?' · '+(fare?'฿'+fare:'ฟรี'):''}</span>`:''}</div></div>`}).join('')}</div>
+ <div class="tip"><span class="round">${I('bulb')}</span><div><h3 class="h-s">ทริคเดินทาง</h3><p class="small" style="margin:0;color:var(--ink)">${e.tip}</p></div></div>
+ <div class="row"><button class="btn white" data-share>${I('share')}แชร์</button><button class="btn lime" style="flex:1" data-startnav>${I('locate')}${nav0?'เริ่มใหม่':'เริ่มนำทาง'}</button></div>
+</div><div class="gap24"></div></div>${nav('route')}</section>`}
+
+/* ================= render: community ================= */
+function postHtml(p,compact){return `<article class="post"><div class="row" style="gap:10px"><span class="av" style="background:${p.avc}">${p.av}</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${esc(p.name)}</div><div class="cap">${esc(p.meta)}</div></div><span class="tag ${TAGCLS[p.tag]||''}">#${p.tag}</span></div>
+ <p>${esc(p.body)}</p>${p.img&&!compact?`<div class="img" style="background:${p.img[1]}" aria-hidden="true">${p.img[0]}</div>`:''}
+ <div class="actions"><button data-like="${p.id}" aria-pressed="${S.liked.has(p.id)}">${I('heart')}${p.likes+(S.liked.has(p.id)?1:0)}</button><button data-toast="ความคิดเห็นจะเปิดในเวอร์ชันถัดไป">${I('message')}${p.comments}</button><button data-share>${I('share')}แชร์</button></div></article>`}
+function feed(){const q=S.cq.trim().toLowerCase();const l=S.posts.filter(p=>(S.ctab==='ทั้งหมด'||p.tag===S.ctab)&&(!q||(p.body+p.name+p.tag+p.meta).toLowerCase().includes(q)));return l.length?l.map(p=>postHtml(p)).join(''):`<div class="empty">ยังไม่มีโพสต์ในหมวดนี้ เป็นคนแรกที่โพสต์เลย! กดปุ่ม + มุมขวาล่าง</div>`}
+function vCommunity(){return `<section class="screen" data-v="community"><div class="scroll">
+<div class="hero lav" style="padding-bottom:16px">${statusbar()}
+ <div class="pad stack"><div class="row between"><div><h1 class="h-xl">คอมมู 💬</h1><div class="small">คุยกับคนที่ไปงานเดียวกัน</div></div><button class="round" data-toast="ยังไม่มีการแจ้งเตือนใหม่" aria-label="การแจ้งเตือน">${I('bell')}</button></div>
+ <label class="search"><span class="sr">ค้นหาโพสต์</span>${I('search')}<input id="cq" type="search" placeholder="ค้นหาโพสต์ / ชื่องาน / #แท็ก" value="${esc(S.cq)}" autocomplete="off"><span class="go" aria-hidden="true">${I('filter')}</span></label></div>
+ ${mas('cloud','a-tilt','left:200px;top:44px;width:76px;height:76px','<span class="qmark" style="right:-6px;top:-10px">?</span>')}${mas('smiley','a-pop','left:268px;top:44px;width:34px;height:34px')}${mas('pixels','a-twinkle','left:176px;top:58px;width:24px;height:24px')}
+ <div class="gap16"></div>
+ <div class="chips" role="group" aria-label="หมวดโพสต์">${['ทั้งหมด','หาเพื่อนไปด้วย','ถามทาง','รีวิวงาน','แชร์รูป'].map(t=>`<button class="chip" data-ctab="${t}" aria-pressed="${S.ctab===t}">${{'ทั้งหมด':'ทั้งหมด','หาเพื่อนไปด้วย':'🙋 หาเพื่อนไปด้วย','ถามทาง':'🗺️ ถามทาง','รีวิวงาน':'⭐ รีวิวงาน','แชร์รูป':'📸 แชร์รูป'}[t]}</button>`).join('')}</div>
+</div>
+<div class="gap16"></div>
+<div class="pad"><div class="card" style="background:var(--lime);position:relative;overflow:hidden"><h2 class="h-s">🔥 กำลังฮิตตอนนี้</h2><div class="gap8"></div><div class="row" style="flex-wrap:wrap;max-width:250px">${['#IndieFest2026','#PopCultureCon','#ไปคอนคนเดียว','#MRTสีชมพู'].map(t=>`<button class="chip" style="padding:4px 10px;font-size:12px" data-hashtag="${t}">${t}</button>`).join('')}</div>${mas('ghost','a-peek','right:10px;top:4px;width:66px;height:66px')}</div></div>
+<div class="gap16"></div>
+<div class="pad stack" id="feed" style="gap:16px">${feed()}</div><div style="height:96px"></div></div>
+<button class="btn violet" data-compose aria-label="สร้างโพสต์" style="position:absolute;right:20px;bottom:calc(100px + env(safe-area-inset-bottom,0px));width:60px;height:60px;padding:0;border-radius:50%;z-index:5">${I('plus')}</button>
+${nav('community')}</section>`}
+
+/* ================= render: diary ================= */
+const diaryEntries=()=>[...(NB.entries||[]),...DIARY];
+function vDiary(){const ents=diaryEntries();return `<section class="screen" data-v="diary"><div class="scroll">
+<div class="hero violet">${statusbar(1)}
+ <div class="pad stack" style="gap:16px"><div class="row between"><div><h1 class="h-xl">ไดอารี่ของฉัน 📔</h1><div class="small" style="color:var(--violet-200)">เก็บทุกโมเมนต์ที่ไปมา</div></div><span class="pillnote" style="background:var(--yellow)">2026</span></div>
+ <div class="dstats">${[['🎟️',ents.length+9,'งานที่ไป','var(--lime)'],['🚇','48','สถานีที่ผ่าน','var(--yellow)'],['💸','฿1,280','ค่าเดินทาง','var(--pink)']].map(([e,v,l,c])=>`<div class="dstat" style="background:${c}">${e}<b>${v}</b><span class="cap" style="color:var(--ink)">${l}</span></div>`).join('')}</div></div>
+ ${mas('sparkle','','right:120px;top:100px;width:20px;height:20px')}${mas('pixels','','right:24px;top:96px;width:26px;height:26px')}
+</div>
+<div class="gap16"></div>
+<div class="pad stack">
+ <div class="row between"><h2 class="h-m">ตุลาคม 2026</h2><span class="link">${I('calendar')}ดูปฏิทิน</span></div>
+ <div class="week" role="group" aria-label="เลือกวัน">${[['จ','9'],['อ','10'],['พ','11'],['พฤ','12',1],['ศ','13'],['ส','14',1],['อา','15',1]].map(([d,n,e])=>`<button class="day ${e?'ev':''}" data-day="${n}" aria-pressed="${S.day===n}"><span class="cap">${d}</span><b>${n}</b><i></i></button>`).join('')}</div>
+ <h2 class="h-s">อารมณ์วันนี้</h2>
+ <div class="moods" role="group" aria-label="อารมณ์">${[['😍','var(--pink)','ฟิน'],['🥳','var(--lime-200)','สนุก'],['😭','var(--sky)','ซึ้ง'],['😴','var(--violet-200)','เหนื่อย'],['🤯','var(--yellow)','งง']].map(([e,c,l],i)=>`<button class="mood" style="background:${c}" data-mood="${i}" aria-pressed="${S.mood===i}">${e}<small>${l}</small></button>`).join('')}</div>
+ <div class="sechead"><h2 class="h-m">📝 บันทึกล่าสุด</h2><span class="cap">${ents.length} รายการ</span></div>
+ ${ents.map(d=>`<button class="dcard" style="background:${d.c}" ${d.link?`data-event="${d.link}"`:'data-go="notebook"'}><span class="dd"><b>${d.day}</b><span class="cap">${d.mon}</span></span><span class="stack" style="gap:6px;flex:1;min-width:0"><span class="row between"><span class="h-s">${esc(d.title)}</span><span style="font-size:24px">${d.mood}</span></span><p>${esc(d.note)}</p><span class="row" style="flex-wrap:wrap"><span class="wpill">${I('ticket','ico')}${esc(d.ev)}</span>${d.mode?tb(...d.mode):''}</span></span></button>`).join('')}
+ <div class="row" style="gap:12px"><div class="fit" style="width:60px;height:60px;flex:none">${MASCOT.blob}</div><button class="btn violet" style="flex:1" data-go="notebook">${I('pen')}เปิดสมุดบันทึก ✍️</button></div>
+</div><div style="height:96px"></div></div>
+<button class="btn violet" data-newpage aria-label="เขียนหน้าใหม่" style="position:absolute;right:20px;bottom:calc(100px + env(safe-area-inset-bottom,0px));width:60px;height:60px;padding:0;border-radius:50%;z-index:5">${I('plus')}</button>
+${nav('diary')}</section>`}
+
+/* ================= notebook ================= */
+const W_DEF={
+ prompt:{l:'ตั้งเป้าวันนี้',h:t=>`<div class="w-prompt"><span data-edit="a">${t.a??'วันนี้ฉันจะใช้เวลา'}</span><br><span class="pill" data-edit="b">${t.b??'30'}</span> นาที กับ<span class="u" data-edit="c">${t.c??'วางแผนทริปคอน'}</span></div>`},
+ reward:{l:'ให้รางวัลตัวเอง',h:t=>`<div class="w-reward"><span data-edit="a">${t.a??'ทำได้แล้ว จะให้รางวัลตัวเองด้วย:'}</span><span class="pill" data-edit="b">${t.b??'ชานมไข่มุก 🧋'}</span></div>`},
+ quote:{l:'ป้ายคำพูด',h:t=>`<div class="w-quote" data-edit="a">${t.a??'ฉันทำได้! 💪'}</div>`},
+ music:{l:'เพลงประจำวัน',h:t=>`<div class="w-music"><div class="row"><span class="art">🎵</span><div style="min-width:0"><div style="font-weight:600;font-size:14px" data-edit="a">${t.a??'Ticket War'}</div><div class="cap" data-edit="b">${t.b??'เพลงประจำวัน'}</div></div></div><div class="pb"><i></i></div><svg viewBox="0 0 110 24" width="110" height="24"><path d="M22 6v12l-9-6zM12 6v12l-9-6z" fill="#1D0B36"/><rect x="47" y="4" width="5" height="16" rx="2" fill="#1D0B36"/><rect x="57" y="4" width="5" height="16" rx="2" fill="#1D0B36"/><path d="M88 6v12l9-6zM98 6v12l9-6z" fill="#1D0B36"/></svg></div>`},
+ ticket:{l:'ตั๋วงาน',h:t=>`<div class="w-ticket"><div class="l"><span class="cap" style="color:var(--ink)">ADMIT ONE</span><b style="font-weight:600" data-edit="a">${t.a??'LANY Live in BKK'}</b><span style="font-size:12px" data-edit="b">${t.b??'12 ต.ค. · โซน B'}</span></div><div class="r">🎟️</div></div>`},
+ transit:{l:'บันทึกการเดินทาง',h:t=>`<div class="w-transit"><span class="cap">การเดินทางวันนี้ 🚇</span>${tb('pink','MRT สีชมพู')}<b style="font-weight:600;font-size:17px" data-edit="a">${t.a??'฿42 · 35 นาที'}</b><span style="font-size:12px;color:var(--lime-ink)" data-edit="b">${t.b??'ไม่หลงเลยสักป้าย ✅'}</span></div>`},
+ polaroid:{l:'รูปโพลารอยด์',h:t=>`<div class="w-polaroid"><div class="ph">${t.img?`<img src="${t.img}" alt="">`:(t.e??'🎤✨')}</div><span data-edit="a">${t.a??'คืนที่ดีที่สุด 💜'}</span></div>`},
+ notes:{l:'รายการโน้ต',h:t=>`<div class="w-notes"><h4 data-edit="a">${t.a??'ตอนนี้ฉัน…'}</h4><ul data-edit="b">${t.b??'<li>ตื่นเต้นมาก พรุ่งนี้มีคอนแรกของปี!</li><li>เช็กเส้นทางแล้ว MRT สีชมพู → อิมแพ็ค</li><li>เตรียมพาวเวอร์แบงก์ + ร่ม + น้ำ</li><li>นัดเพื่อนจากคอมมูเจอกันหน้าประตู 3</li>'}</ul></div>`},
+ mood:{l:'อารมณ์วันนี้',h:t=>`<div class="w-mood"><span data-edit="a">${t.a??'อารมณ์วันนี้เป็นไงบ้าง?'}</span><div class="ms">${['😭','😐','🙂','😍','🤩'].map((e,i)=>`<span class="${(t.m??3)==i?'on':''}" data-m="${i}">${e}</span>`).join('')}</div></div>`},
+ myself:{l:'โน้ตถึงตัวเอง',h:t=>`<div class="w-myself"><div class="row" style="gap:10px"><span class="av">🐣</span><div><div style="font-weight:500">ตัวฉันเอง</div><div style="font-size:12px;color:var(--lime)">@โน้ตถึงตัวเอง</div></div></div><div class="msg" data-edit="a">${t.a??'ฉันมาถูกทางแล้ว ไปต่อเลย! ✨'}</div></div>`},
+ head:{l:'หัวข้อเด่น',h:t=>`<div class="t-head" data-edit="a">${t.a??'หัวข้อเด่น'}</div>`},
+ hand:{l:'ลายมือน่ารัก',h:t=>`<div class="t-hand" data-edit="a">${t.a??'เขียนอะไรก็ได้ ✍️'}</div>`},
+ bubble:{l:'ป้ายข้อความ',h:t=>`<div class="t-bubble" data-edit="a">${t.a??'วันนี้ดีมาก!'}</div>`}
+};
+const STK_LIB=[['m','train','Train Buddy',1],['m','spiky','Spiky Pink'],['m','ghost','Violet Ghost'],['m','cloud','Cloud Pal'],['m','blob','Lime Blob',1],['s','heart','หัวใจ'],['s','smiley','หน้ายิ้ม'],['s','burst','ดาวแตก'],['s','ticket','ตั๋ว'],['s','music','โน้ตเพลง'],['s','sparkle','ประกาย'],['s','sparkleV','ประกายม่วง'],['s','checker','ลายตาราง'],['s','pixels','พิกเซล'],['s','cloud','เมฆ'],['s','squiggle','เส้นหยัก']];
+const SHAPES=[['star','ดาว'],['heartShape','หัวใจ'],['circle','วงกลม']];
+let NB={paper:'dot',month:'ต.ค.',items:[],ink:[],entries:[],z:1};
+const uid=()=>Math.random().toString(36).slice(2,9);
+function defaultNB(){return{paper:'dot',month:'ต.ค.',entries:NB.entries||[],z:40,ink:[{c:'#8116E0',w:3,d:'M66 452 C84 422 106 470 128 446 S150 426 168 432'}],items:[
+ {id:uid(),k:'w',v:'polaroid',x:22,y:78,r:4,s:1,z:2,t:{a:'คืนคอนแรกของปี 💜'}},{id:uid(),k:'washi',v:'lime',x:56,y:70,r:-8,s:1,z:3,t:{}},
+ {id:uid(),k:'w',v:'prompt',x:188,y:76,r:-2,s:1,z:4,t:{}},{id:uid(),k:'w',v:'reward',x:186,y:222,r:2,s:1,z:5,t:{}},
+ {id:uid(),k:'w',v:'ticket',x:18,y:282,r:-5,s:1,z:6,t:{}},{id:uid(),k:'washi',v:'pink',x:118,y:274,r:14,s:.75,z:7,t:{}},
+ {id:uid(),k:'w',v:'quote',x:170,y:382,r:0,s:1,z:8,t:{}},{id:uid(),k:'s',v:'heart',x:128,y:380,r:-8,s:1,z:9,t:{}},{id:uid(),k:'s',v:'sparkle',x:300,y:58,r:0,s:1,z:9,t:{}},
+ {id:uid(),k:'w',v:'notes',x:16,y:478,r:0,s:1,z:10,t:{}},
+ {id:uid(),k:'w',v:'transit',x:14,y:676,r:-2,s:1,z:11,t:{}},{id:uid(),k:'washi',v:'check',x:52,y:664,r:-6,s:.75,z:12,t:{}},
+ {id:uid(),k:'w',v:'music',x:184,y:684,r:3,s:1,z:13,t:{}},{id:uid(),k:'m',v:'train',x:124,y:762,r:-8,s:1,z:14,t:{}},
+ {id:uid(),k:'w',v:'mood',x:16,y:842,r:0,s:1,z:15,t:{}},{id:uid(),k:'m',v:'blob',x:276,y:806,r:10,s:1,z:16,t:{}}]}}
+const KEY='bkk-event-hub-notebook-v1';
+try{const raw=localStorage.getItem(KEY);NB=raw?JSON.parse(raw):defaultNB()}catch(e){NB=defaultNB()}
+if(!NB.items)NB=defaultNB();
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(NB))}catch(e){try{const lite=JSON.parse(JSON.stringify(NB));lite.items.forEach(i=>{if(i.t&&i.t.img)delete i.t.img});localStorage.setItem(KEY,JSON.stringify(lite))}catch(_){}}},300)}
+const UNDO=[];function snap(){UNDO.push(JSON.stringify({items:NB.items,ink:NB.ink,paper:NB.paper}));if(UNDO.length>40)UNDO.shift()}
+let SEL=null,PEN=false,PENC='#8116E0';
+function itemInner(it){if(it.k==='w')return W_DEF[it.v].h(it.t||{});if(it.k==='washi')return washiSvg(it.v);const svg=it.k==='m'?MASCOT[it.v]:STK[it.v];const sz=it.k==='m'?72:(it.v==='cloud'?80:it.v==='squiggle'?64:48);return `<div class="fit" style="width:${sz}px;height:${it.v==='cloud'?sz*.6:it.v==='squiggle'?24:sz}px">${svg}</div>`}
+function itemHtml(it){return `<div class="it${SEL===it.id?' sel':''}" data-id="${it.id}" style="transform:translate(${it.x}px,${it.y}px) rotate(${it.r}deg) scale(${it.s});z-index:${it.z}">${itemInner(it)}<span class="h ro" data-h="ro" aria-hidden="true"></span><span class="h sc" data-h="sc" aria-hidden="true"></span></div>`}
+function inkHtml(){return NB.ink.map(s=>`<path d="${s.d}" stroke="${s.c}" stroke-width="${s.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}
+function vNotebook(){const papers=[['dot','⠿ จุด'],['grid','▦ ตาราง'],['lined','☰ มีเส้น'],['blank','▢ ว่าง']];
+ return `<section class="screen" data-v="notebook">${statusbar()}
+<div class="nbhead"><button class="round" data-back aria-label="ย้อนกลับ">${I('back')}</button><div style="text-align:center;min-width:0"><h1 class="h-m">สมุดบันทึกของฉัน ✍️</h1><div class="cap">${NB.dateLabel?'บันทึกของวันที่ '+NB.dateLabel:'บันทึกอัตโนมัติ · เลือกวันตอนกดเสร็จ'}</div></div><button class="btn lime" data-done>เสร็จ</button></div>
+<div class="chips" role="group" aria-label="แบบกระดาษ">${papers.map(([k,l])=>`<button class="chip" data-paper="${k}" aria-pressed="${NB.paper===k}">${l}</button>`).join('')}<button class="chip" data-tpl-open>🎟️ เทมเพลต</button></div>
+<div class="scroll" id="nbscroll"><div class="canvaswrap">
+ <div class="paper ${NB.paper}${PEN?' pen':''}" id="paper"><div class="ptitle">พื้นที่แห่งความเป็นไปได้ ✨</div>
+  <svg class="inklayer" id="ink">${inkHtml()}</svg>
+  <div id="items">${NB.items.map(itemHtml).join('')}</div>
+ </div></div></div>
+${PEN?`<div class="penbar" role="group" aria-label="สีปากกา">${['#8116E0','#1D0B36','#FF4FB8','#00A86B','#FF8A1F'].map(c=>`<button class="sw" style="background:${c}" data-penc="${c}" aria-pressed="${PENC===c}" aria-label="สี ${c}"></button>`).join('')}<button class="w" data-pen>เสร็จ</button></div>`:''}
+<div class="toolbar" role="toolbar" aria-label="เครื่องมือสมุด">
+ <button data-pen aria-pressed="${PEN}">${I('pen')}<span>ปากกา</span></button>
+ <button data-addtext>${I('type')}<span>ข้อความ</span></button>
+ <button class="plus" data-lib aria-label="เพิ่ม Element">${I('plus')}</button>
+ <button data-photo>${I('image')}<span>รูปภาพ</span></button>
+ <button data-undo>${I('undo')}<span>ย้อน</span></button>
+</div><input type="file" id="photo" accept="image/*" hidden></section>`}
+function renderItems(){const box=$('#items');if(!box)return;box.innerHTML=NB.items.map(itemHtml).join('');$('#ink').innerHTML=inkHtml();placeCtx()}
+function placeCtx(){document.querySelectorAll('.ctx').forEach(n=>n.remove());if(!SEL)return;const el=document.querySelector(`.it[data-id="${SEL}"]`);const paper=$('#paper');if(!el||!paper)return;
+ const pr=paper.getBoundingClientRect(),r=el.getBoundingClientRect();const c=document.createElement('div');c.className='ctx';c.setAttribute('role','toolbar');c.setAttribute('aria-label','แก้ไขชิ้นที่เลือก');
+ c.innerHTML=[['dup','copy','ทำซ้ำ'],['rot','rotate','หมุน 15°'],['front','layers','นำขึ้นบนสุด'],['del','trash','ลบ']].map(([a,ic,l])=>`<button data-ctx="${a}" aria-label="${l}" title="${l}">${I(ic)}</button>`).join('');
+ paper.appendChild(c);let x=r.left-pr.left+r.width/2-c.offsetWidth/2,y=r.top-pr.top-c.offsetHeight-44;x=Math.max(4,Math.min(pr.width-c.offsetWidth-4,x));if(y<4)y=r.bottom-pr.top+14;c.style.left=x+'px';c.style.top=y+'px'}
+function addItem(k,v,t={}){snap();const sc=$('#nbscroll');const y=(sc?sc.scrollTop:0)+140+Math.random()*60;const it={id:uid(),k,v,x:60+Math.random()*90,y,r:Math.round(Math.random()*10-5),s:1,z:++NB.z,t};NB.items.push(it);SEL=it.id;renderItems();save();return it}
+function stopEdit(){document.querySelectorAll('[contenteditable="true"]').forEach(n=>{n.contentEditable='false'})}
+
+/* ---- notebook pointer interactions ---- */
+let drag=null;
+phone.addEventListener('pointerdown',e=>{
+ const paper=e.target.closest('#paper');if(!paper||e.target.closest('.ctx'))return;
+ if(PEN&&e.target.closest('#ink')){e.preventDefault();snap();const pr=paper.getBoundingClientRect();const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('stroke',PENC);p.setAttribute('stroke-width','3');p.setAttribute('fill','none');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');$('#ink').appendChild(p);
+  const pts=[[e.clientX-pr.left,e.clientY-pr.top]];drag={type:'ink',p,pts,pr};$('#ink').setPointerCapture(e.pointerId);return}
+ const h=e.target.closest('.h');const itEl=e.target.closest('.it');
+ if(!itEl){if(SEL){SEL=null;stopEdit();renderItems()}return}
+ const it=NB.items.find(i=>i.id===itEl.dataset.id);if(!it)return;
+ if(e.target.closest('[contenteditable="true"]'))return;
+ const wasSel=SEL===it.id;
+ if(!wasSel){SEL=it.id;stopEdit();document.querySelectorAll('.it.sel').forEach(n=>n.classList.remove('sel'));itEl.classList.add('sel');placeCtx()}
+ const r=itEl.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;
+ drag={type:h?h.dataset.h:'move',it,el:itEl,sx:e.clientX,sy:e.clientY,ox:it.x,oy:it.y,or:it.r,os:it.s,cx,cy,a0:Math.atan2(e.clientY-cy,e.clientX-cx),d0:Math.hypot(e.clientX-cx,e.clientY-cy),moved:false,wasSel,target:e.target,before:JSON.stringify({items:NB.items,ink:NB.ink,paper:NB.paper})};
+ itEl.setPointerCapture(e.pointerId);e.preventDefault();
+});
+phone.addEventListener('pointermove',e=>{if(!drag)return;
+ if(drag.type==='ink'){drag.pts.push([e.clientX-drag.pr.left,e.clientY-drag.pr.top]);drag.p.setAttribute('d',drag.pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '));return}
+ const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;const it=drag.it;
+ if(drag.type==='move'){it.x=Math.round(drag.ox+dx);it.y=Math.max(-20,Math.round(drag.oy+dy))}
+ else if(drag.type==='ro'){const a=Math.atan2(e.clientY-drag.cy,e.clientX-drag.cx);it.r=Math.round(drag.or+(a-drag.a0)*180/Math.PI)}
+ else if(drag.type==='sc'){const d=Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy);it.s=Math.max(.35,Math.min(3,+(drag.os*d/drag.d0).toFixed(3)))}
+ drag.el.style.transform=`translate(${it.x}px,${it.y}px) rotate(${it.r}deg) scale(${it.s})`;drag.el.classList.add('drag');document.querySelectorAll('.ctx').forEach(n=>n.style.opacity=.0);
+});
+const endDrag=()=>{if(!drag)return;const d=drag;drag=null;
+ if(d.type==='ink'){if(d.pts.length>1)NB.ink.push({c:PENC,w:3,d:d.p.getAttribute('d')});else UNDO.pop();save();return}
+ d.el.classList.remove('drag');
+ if(d.moved){UNDO.push(d.before);save();placeCtx()}
+ else{document.querySelectorAll('.ctx').forEach(n=>n.style.opacity=1);
+  const ed=d.target.closest&&d.target.closest('[data-edit]');const mi=d.target.closest&&d.target.closest('[data-m]');
+  if(mi&&d.wasSel){snap();d.it.t=d.it.t||{};d.it.t.m=+mi.dataset.m;renderItems();save();return}
+  if(ed&&d.wasSel){ed.contentEditable='true';ed.focus();const rg=document.createRange();rg.selectNodeContents(ed);rg.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(rg)}}};
+phone.addEventListener('pointerup',endDrag);phone.addEventListener('pointercancel',endDrag);
+phone.addEventListener('focusout',e=>{const ed=e.target.closest&&e.target.closest('[data-edit][contenteditable="true"]');if(!ed)return;const itEl=ed.closest('.it');const it=NB.items.find(i=>i.id===itEl.dataset.id);if(!it)return;snap();it.t=it.t||{};it.t[ed.dataset.edit]=ed.innerHTML;ed.contentEditable='false';save()});
+
+/* ---- sheets ---- */
+function libSheet(){const q=(S.libq||'').trim();const cat=S.libcat||'all';const match=l=>!q||l.includes(q);
+ const tiles=STK_LIB.filter(x=>match(x[2])).map(([k,v,l,nw])=>`<button class="tile" data-add="${k}:${v}" aria-label="เพิ่ม ${l}">${k==='m'?MASCOT[v]:STK[v]}${nw?'<span class="new">ใหม่</span>':''}</button>`).join('');
+ const wids=['prompt','music','transit','reward','ticket','polaroid','quote','mood','notes','myself'].filter(k=>match(W_DEF[k].l)).map(k=>`<button class="wtile" data-add="w:${k}"><span class="pv"><div>${W_DEF[k].h({})}</div></span><span class="cap">${W_DEF[k].l}</span></button>`).join('');
+ const texts=[['head','หัวข้อเด่น','var(--lime)','font-family:var(--display);font-weight:600;font-size:17px'],['hand','ลายมือน่ารัก','var(--violet-50)','font-family:var(--hand);font-weight:600;font-size:16px'],['bubble','ป้ายข้อความ','var(--violet)','font-family:var(--hand);font-weight:600;color:#fff']].filter(x=>match(x[1]));
+ const washi=Object.keys(WASHI).map(k=>`<button class="ttile" style="background:var(--violet-50)" data-add="washi:${k}" aria-label="เทปลาย ${k}">${washiSvg(k)}</button>`).join('');
+ const shapes=SHAPES.filter(x=>match(x[1])).map(([v,l])=>`<button class="tile" data-add="s:${v}" aria-label="เพิ่ม ${l}">${STK[v]}</button>`).join('');
+ const show=c=>cat==='all'||cat===c;
+ const sec=(t,b)=>b?`<div class="stack" style="gap:10px"><h3 class="h-s">${t}</h3>${b}</div>`:'';
+ const body=[show('stk')&&tiles?sec('🔥 สติกเกอร์ยอดนิยม',`<div class="tiles">${tiles}</div>`):'',show('wid')&&wids?sec('🧩 วิดเจ็ตจดบันทึก',`<div class="wtiles">${wids}</div>`):'',show('txt')&&texts.length?sec('🔤 สไตล์ข้อความ',`<div class="ttiles">${texts.map(([v,l,bg,st])=>`<button class="ttile" style="background:${bg};${st}" data-add="w:${v}">${l}</button>`).join('')}</div>`):'',show('tape')&&!q?sec('🎀 เทปตกแต่ง',`<div class="tiles">${washi}</div>`):'',show('shape')&&shapes?sec('🔷 รูปทรง',`<div class="tiles">${shapes}</div>`):'',show('tpl')&&!q?sec('📐 เทมเพลตหน้า',tplHtml()):''].join('');
+ return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="เพิ่ม Element"><div class="grab"></div>
+ <div class="pad stack" style="gap:12px;padding-bottom:10px"><div class="row between"><div><h2 class="h-l">เพิ่ม Element ✨</h2><div class="cap">แตะเพื่อวางบนหน้า · ลากเพื่อย้าย · จับจุดเพื่อหมุน/ย่อขยาย</div></div><button class="round sm" style="background:var(--line);box-shadow:none" data-close aria-label="ปิด">${I('x')}</button></div>
+ <label class="search" style="box-shadow:none;background:var(--canvas)"><span class="sr">ค้นหา Element</span>${I('search')}<input id="libq" type="search" placeholder="ค้นหา เช่น หัวใจ, ตั๋ว, ประกาย" value="${esc(q)}" autocomplete="off"></label></div>
+ <div class="chips" role="group" aria-label="หมวด Element">${[['all','ทั้งหมด'],['stk','🌟 สติกเกอร์'],['wid','🧩 วิดเจ็ต'],['txt','🔤 ข้อความ'],['tape','🎀 เทป'],['shape','🔷 รูปทรง'],['tpl','📐 เทมเพลต']].map(([k,l])=>`<button class="chip" style="box-shadow:none;background:${cat===k?'var(--violet)':'var(--violet-50)'}" data-libcat="${k}" aria-pressed="${cat===k}">${l}</button>`).join('')}</div>
+ <div class="scroll"><div class="pad stack" style="gap:20px;padding-top:8px" id="libbody">${body||`<div class="empty">ไม่เจอ “${esc(q)}” ลองคำอื่น เช่น หัวใจ หรือ ดาว</div>`}</div></div></div>`}
+function tplHtml(){return `<div class="tpl">${[['concert','สรุปทริปคอนเสิร์ต','var(--pink)','var(--violet-200)','🎤'],['plan','แพลนเดินทางไปงาน','var(--lime-200)','var(--violet)','🚇']].map(([k,l,a,b,em])=>`<button class="tplc" data-tpl="${k}"><span class="mini"><i style="left:8%;top:8%;width:40%;height:40%;background:${a}"></i><i style="left:54%;top:8%;width:38%;height:18%;background:${b}"></i><i style="left:54%;top:30%;width:38%;height:18%;background:var(--line)"></i><i style="left:8%;top:56%;width:84%;height:4%;background:var(--line)"></i><i style="left:8%;top:64%;width:66%;height:4%;background:var(--line)"></i><i style="left:8%;top:80%;width:46%;height:10%;border-radius:99px;background:${b}"></i><span style="position:absolute;left:18%;top:16%;font-size:26px">${em}</span></span>${l}</button>`).join('')}</div>`}
+const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function dateSheet(){const today=isoDate(new Date());const val=NB.date||today;
+ return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="เลือกวันที่บันทึก"><div class="grab"></div><div class="scroll"><div class="pad stack" style="gap:14px">
+ <div class="row between"><h2 class="h-l">บันทึกเป็นวันไหน? 📅</h2><button class="round sm" style="background:var(--line);box-shadow:none" data-close aria-label="ปิด">${I('x')}</button></div>
+ <p class="small" style="margin:0">หน้าสมุดนี้จะไปอยู่ในไดอารี่ตามวันที่ที่เลือก</p>
+ <div class="row" role="group" aria-label="เลือกวันด่วน">${[['0','วันนี้'],['1','เมื่อวาน'],['2','2 วันก่อน']].map(([k,l])=>`<button class="chip" style="box-shadow:none" data-qdate="${k}" aria-pressed="${k==='0'&&val===today}">${l}</button>`).join('')}</div>
+ <div class="field"><label for="nbdate">หรือเลือกวันที่เอง</label><div class="inp">${I('calendar')}<input id="nbdate" type="date" value="${val}"></div><p class="err" id="derr" hidden>เลือกวันที่ก่อนนะ</p></div>
+ <div class="row"><button class="btn white" data-close>ยกเลิก</button><button class="btn lime" style="flex:1" data-savedate>${I('check')}บันทึกไดอารี่</button></div>
+ </div></div></div>`}
+function qrSvg(code){let h=0;for(const ch of code)h=(h*31+ch.charCodeAt(0))>>>0;const N=21;let r='';const fin=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#1D0B36"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#1D0B36"/>`;
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){if((x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12))continue;h=(Math.imul(h,1103515245)+12345)>>>0;if((h>>>16)&1)r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#1D0B36"/>`}
+ return `<svg viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges" role="img" aria-label="คิวอาร์โค้ดตัวอย่าง">${r}${fin(0,0)}${fin(14,0)}${fin(0,14)}</svg>`}
+function buySheet(){const e=ev(),tk=S.tickets[e.id];const close=`<button class="round sm" style="background:var(--line);box-shadow:none" data-close aria-label="ปิด">${I('x')}</button>`;
+ if(tk){const t=tiersOf(e)[tk.tier];return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="บัตรของฉัน"><div class="grab"></div><div class="scroll"><div class="pad stack" style="gap:14px">
+  <div class="row between"><h2 class="h-l">ได้บัตรแล้ว! 🎉</h2>${close}</div>
+  <div class="eticket">${mas('sparkle','','right:16px;top:14px;width:24px;height:24px')}<div><div class="cap" style="color:var(--violet-200)">E-TICKET · ${tk.qty} ใบ</div><div class="h-m">${esc(e.title)}</div><div style="font-size:13px;opacity:.9">${e.date} · ${e.time}</div><div style="font-size:13px;opacity:.9">📍 ${esc(e.venueFull)}</div></div>
+   <div class="qr">${qrSvg(tk.code)}</div><div class="code">${tk.code}</div><div class="row between" style="font-size:13px"><span>${t[0]}</span><b style="font-family:var(--display);font-weight:500">${baht(t[1]*tk.qty)}</b></div></div>
+  <p class="cap" style="margin:0;text-align:center">แสดง QR นี้ที่ทางเข้างาน · ต้นแบบนี้ไม่มีการชำระเงินจริง</p>
+  <button class="btn lime block" data-route="${e.id}">${I('route')}ดูวิธีเดินทางไปงาน</button></div></div></div>`}
+ const tiers=tiersOf(e),B=S.buy,tier=tiers[Math.min(B.tier,tiers.length-1)],free=!tier[1],total=tier[1]*B.qty;
+ return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="ซื้อบัตร"><div class="grab"></div><div class="scroll"><div class="pad stack" style="gap:14px">
+ <div class="row between"><div style="min-width:0"><h2 class="h-l">${free?'ลงทะเบียนเข้างาน 🎟️':'ซื้อบัตร 🎟️'}</h2><div class="small">${esc(e.title)} · ${e.day} ${e.mon}</div></div>${close}</div>
+ <div class="stack" style="gap:8px" role="group" aria-label="ประเภทบัตร">${tiers.map(([n,pr],i)=>`<button class="tier" data-tier="${i}" aria-pressed="${B.tier===i}"><span><span style="font-weight:600">${n}</span><br><span class="cap">${pr?'ต่อ 1 ใบ':'เข้างานได้ทั้งวัน'}</span></span><b>${baht(pr)}</b></button>`).join('')}</div>
+ <div class="row between"><span style="font-weight:600">จำนวน</span><div class="stepper"><button data-qty="-1" aria-label="ลดจำนวน" ${B.qty<=1?'disabled':''}>−</button><output aria-live="polite">${B.qty}</output><button data-qty="1" aria-label="เพิ่มจำนวน" ${B.qty>=6?'disabled':''}>+</button></div></div>
+ ${free?'':`<div class="stack" style="gap:8px"><span style="font-weight:600">ช่องทางชำระเงิน</span><div class="row" style="flex-wrap:wrap" role="group" aria-label="ช่องทางชำระเงิน">${[['promptpay','พร้อมเพย์'],['card','บัตรเครดิต/เดบิต'],['wallet','ทรูมันนี่ วอลเล็ท']].map(([k,l])=>`<button class="chip" style="box-shadow:none;background:${B.pay===k?'var(--violet)':'var(--violet-50)'};color:${B.pay===k?'#fff':'var(--ink)'}" data-pay="${k}" aria-pressed="${B.pay===k}">${l}</button>`).join('')}</div></div>`}
+ <div class="total"><span class="small">รวมทั้งหมด (${B.qty} ใบ)</span><b>${baht(total)}</b></div>
+ <button class="btn lime block" data-confirmbuy>${free?'ยืนยันลงทะเบียน':'ยืนยันซื้อบัตร '+baht(total)}</button>
+ <p class="cap" style="margin:0;text-align:center">ต้นแบบ: กดยืนยันแล้วได้ E-ticket ตัวอย่าง ไม่มีการตัดเงินจริง</p>
+ </div></div></div>`}
+function refreshSheet(){const b=$('#sheetbox');if(!b)return;const sc=b.querySelector('.scroll')?.scrollTop||0;b.innerHTML=buySheet();b.querySelectorAll('.sheet,.scrim').forEach(n=>n.style.animation='none');const s=b.querySelector('.scroll');if(s)s.scrollTop=sc}
+function randomSheet(){const cat=CATS.find(c=>c[0]===S.cat)[1];return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="สุ่มอีเว้นต์"><div class="grab"></div><div class="scroll"><div class="pad stack" style="gap:14px">
+ <div class="row between"><div><h2 class="h-l">สุ่มอีเว้นต์ 🎲</h2><div class="small">สุ่มจากหมวด: ${cat}</div></div><button class="round sm" style="background:var(--line);box-shadow:none" data-close aria-label="ปิด">${I('x')}</button></div>
+ <div class="slot spin" id="slot" aria-live="polite"></div>
+ <div class="stack" id="randres" hidden style="gap:10px"><div class="row"><button class="btn white" style="flex:1" data-reroll>🎲 สุ่มใหม่</button><button class="btn violet" style="flex:1" id="r-detail">ดูรายละเอียด</button></div><button class="btn lime block" id="r-route">${I('route')}ไปยังไงดี?</button></div>
+ </div></div></div>`}
+let spinT=null;
+function slotHtml(e,win){return `<span class="em" aria-hidden="true">${e.emoji}</span><span class="meta">${e.day} ${e.mon} · ${e.meta}</span><span class="ttl">${esc(e.title)}</span><span class="venue" style="justify-content:center">${I('pin')}${esc(e.venue)}</span>${win?`<span class="badges" style="justify-content:center">${e.badges.map(b=>tb(...b)).join('')}</span>`:''}`}
+function spin(){clearTimeout(spinT);const slot=$('#slot'),res=$('#randres');if(!slot)return;let pool=filtered();if(!pool.length)pool=EVENTS;
+ let pick=pool[Math.floor(Math.random()*pool.length)];if(pool.length>1)while(pick.id===S.lastRand)pick=pool[Math.floor(Math.random()*pool.length)];S.lastRand=pick.id;
+ res.hidden=true;slot.classList.add('spin');slot.classList.remove('win');
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let i=0,n=reduce?0:16,delay=55;
+ const step=()=>{if(i<n){const e=EVENTS[(i+Math.floor(Math.random()*EVENTS.length))%EVENTS.length];slot.style.background=e.color;slot.innerHTML=slotHtml(e);i++;delay*=1.17;spinT=setTimeout(step,delay)}
+  else{slot.style.background=pick.color;slot.innerHTML=slotHtml(pick,1);slot.classList.remove('spin');void slot.offsetWidth;slot.classList.add('win');$('#r-detail').dataset.event=pick.id;$('#r-route').dataset.route=pick.id;res.hidden=false}};step()}
+function composeSheet(){return `<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-label="สร้างโพสต์"><div class="grab"></div><div class="scroll"><div class="pad stack" style="gap:14px">
+ <div class="row between"><h2 class="h-l">โพสต์ใหม่ 💬</h2><button class="round sm" style="background:var(--line);box-shadow:none" data-close aria-label="ปิด">${I('x')}</button></div>
+ <label for="ctext" class="small">อยากชวน ถาม หรือเล่าอะไร?</label><textarea id="ctext" class="compose" placeholder="เช่น ใครไป Indie Fest วันเสาร์บ้าง จะนั่ง MRT จากสามย่าน~"></textarea>
+ <div class="small">เลือกแท็ก</div><div class="row" style="flex-wrap:wrap">${['หาเพื่อนไปด้วย','ถามทาง','รีวิวงาน','แชร์รูป'].map((t,i)=>`<button class="chip" style="box-shadow:none;background:${(S.ctag||'หาเพื่อนไปด้วย')===t?'var(--violet)':'var(--violet-50)'};color:${(S.ctag||'หาเพื่อนไปด้วย')===t?'#fff':'var(--ink)'}" data-ctag="${t}">#${t}</button>`).join('')}</div>
+ <p class="cap" id="cerr" style="margin:0;color:#B4006A" hidden>พิมพ์ข้อความก่อนโพสต์นะ</p>
+ <button class="btn lime block" data-post>โพสต์เลย</button></div></div></div>`}
+function openSheet(kind){closeSheet();S.sheet=kind;const box=document.createElement('div');box.id='sheetbox';box.innerHTML=kind==='lib'?libSheet():kind==='date'?dateSheet():kind==='buy'?buySheet():kind==='random'?randomSheet():composeSheet();phone.appendChild(box);const f=box.querySelector(kind==='lib'?'#libq':'#ctext');if(kind==='compose'&&f)setTimeout(()=>f.focus(),300)}
+function closeSheet(){clearTimeout(spinT);const b=$('#sheetbox');if(b)b.remove();S.sheet=null}
+function refreshLib(){const b=$('#sheetbox');if(!b)return;const pos=$('#libq')?.selectionStart;b.innerHTML=libSheet();b.querySelectorAll('.sheet,.scrim').forEach(n=>n.style.animation='none');const i=$('#libq');if(document.activeElement!==i&&S._libfocus){i.focus();try{i.setSelectionRange(pos,pos)}catch(e){}}}
+function applyTpl(k){snap();const base=k==='concert'?[['w','polaroid',24,70,-4,{a:'โมเมนต์ที่ชอบที่สุด 💜'}],['washi','pink',60,62,-8,{}],['w','ticket',180,80,4,{}],['t','head',186,180,-3,{a:'สรุปคอน!'}],['w','music',184,250,2,{}],['w','notes',16,340,0,{a:'ไฮไลต์ของคืนนี้',b:'<li>เพลงเปิดคือเพลงที่ชอบที่สุด</li><li>ได้ของที่ระลึกครบ</li><li>ขากลับ MRT ยังมีรอบ</li>'}],['w','transit',16,520,-2,{}],['w','mood',16,680,0,{}],['m','spiky',270,500,8,{}]]
+ :[['t','head',24,70,-2,{a:'แพลนไปงาน 🗺️'}],['w','prompt',20,130,-2,{c:'เช็กเส้นทาง + เวลา'}],['w','transit',190,130,3,{a:'฿47 · 20 นาที',b:'ออก 16:10 ✅'}],['w','notes',16,300,0,{a:'ของที่ต้องพก',b:'<li>บัตร + บัตรประชาชน</li><li>พาวเวอร์แบงก์ + ร่ม</li><li>เงินสดค่ารถ</li>'}],['w','reward',180,470,2,{}],['m','train',40,480,-6,{}],['s','sparkle',300,90,0,{}],['washi','lime',190,118,8,{}]];
+ NB.items=base.map(([k,v,x,y,r,t],i)=>({id:uid(),k:k==='t'?'w':k,v,x,y,r,s:1,z:i+2,t}));NB.ink=[];NB.z=base.length+2;SEL=null;closeSheet();renderItems();save();toast('ใช้เทมเพลตแล้ว · กด “ย้อน” เพื่อกลับ')}
+
+/* ================= render: login / register ================= */
+const pwField=(id,label,ph,auto,hint)=>`<div class="field"><label for="${id}">${label}</label><div class="inp" id="${id}-box">${I('lock')}<input id="${id}" name="${id}" type="password" placeholder="${ph}" autocomplete="${auto}" required><button type="button" class="eye" data-eye="${id}" aria-label="แสดงรหัสผ่าน">${I('eye')}</button></div>${hint?`<p class="hint">${hint}</p>`:''}<p class="err" id="${id}-err" hidden></p></div>`;
+const userField=(id,auto)=>`<div class="field"><label for="${id}">ชื่อผู้ใช้ (Username)</label><div class="inp" id="${id}-box">${I('user')}<input id="${id}" name="${id}" type="text" placeholder="เช่น mind.goes.to.concert" autocomplete="${auto}" autocapitalize="off" spellcheck="false" required></div><p class="err" id="${id}-err" hidden></p></div>`;
+function authShell(title,sub,mascot,form,swap){return `<section class="screen" data-v="${title[0]}" style="background:var(--violet)"><div class="scroll"><div class="auth">${statusbar(1)}
+ <div class="topbar"><button class="round" data-back aria-label="ย้อนกลับ">${I('back')}</button><span></span><span style="width:44px"></span></div>
+ ${mas('sparkle','a-twinkle','left:36px;top:150px;width:28px;height:28px')}${mas('sparkleV','','right:40px;top:120px;width:22px;height:22px')}${mas('cloud','','left:-20px;bottom:40px;width:110px;height:66px')}${mas('pixels','','right:26px;bottom:70px;width:34px;height:34px')}
+ <div class="authwrap pad"><div class="brand">Event<span>where</span></div>
+ <div class="authcard"><div class="peek">${MASCOT[mascot]}</div>
+  <div><h1 class="h-l">${title[1]}</h1><p class="small" style="margin:4px 0 0">${sub}</p></div>
+  ${form}
+  <p class="swaplink">${swap}</p>
+ </div></div></div></div></section>`}
+function vLogin(){return authShell(['login','ยินดีต้อนรับกลับ 👋'],'เข้าสู่ระบบเพื่อดูงานที่บันทึกไว้และไดอารี่ของคุณ','train',
+ `<form id="loginForm" novalidate>${userField('lu','username')}${pwField('lp','รหัสผ่าน (Password)','รหัสผ่านของคุณ','current-password')}
+  <button type="button" class="link" style="align-self:flex-end;margin-top:-6px" data-toast="ต้นแบบนี้ยังไม่มีระบบรีเซ็ตรหัสผ่าน">ลืมรหัสผ่าน?</button>
+  <button type="submit" class="btn lime block">เข้าสู่ระบบ</button></form>`,
+ `ยังไม่มีบัญชี? <button type="button" data-go="register">สมัครสมาชิก</button>`)}
+function vRegister(){return authShell(['register','สร้างบัญชีใหม่ ✨'],'สมัครฟรี เก็บงานที่อยากไป วางแผนเดินทาง และจดไดอารี่ได้เลย','spiky',
+ `<form id="regForm" novalidate>${userField('ru','username')}${pwField('rp','รหัสผ่าน (Password)','ตั้งรหัสผ่าน','new-password','อย่างน้อย 6 ตัวอักษร')}${pwField('rp2','ยืนยันรหัสผ่าน','พิมพ์รหัสผ่านอีกครั้ง','new-password')}
+  <button type="submit" class="btn lime block">สมัครสมาชิก</button></form>`,
+ `มีบัญชีแล้ว? <button type="button" data-go="login">เข้าสู่ระบบ</button>`)}
+function fieldErr(id,msg){const box=$('#'+id+'-box'),er=$('#'+id+'-err'),inp=$('#'+id);if(!box)return;box.classList.toggle('bad',!!msg);er.hidden=!msg;er.textContent=msg||'';if(msg)inp.setAttribute('aria-invalid','true');else inp.removeAttribute('aria-invalid')}
+phone.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
+ if(f.id==='loginForm'){const u=$('#lu').value.trim(),p=$('#lp').value;fieldErr('lu',u?'':'กรอกชื่อผู้ใช้ก่อนนะ');fieldErr('lp',p?'':'กรอกรหัสผ่านก่อนนะ');if(!u){$('#lu').focus();return}if(!p){$('#lp').focus();return}
+  S.user=u;go('home');toast('เข้าสู่ระบบแล้ว ยินดีต้อนรับ '+u+' 🎉');return}
+ if(f.id==='regForm'){const u=$('#ru').value.trim(),p=$('#rp').value,p2=$('#rp2').value;
+  const eu=!u?'ตั้งชื่อผู้ใช้ก่อนนะ':(/\s/.test(u)?'ชื่อผู้ใช้ห้ามมีเว้นวรรค':(u.length<3?'ชื่อผู้ใช้อย่างน้อย 3 ตัวอักษร':''));
+  const ep=!p?'ตั้งรหัสผ่านก่อนนะ':(p.length<6?'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร':'');const ep2=!ep&&p!==p2?'รหัสผ่านทั้งสองช่องไม่ตรงกัน':'';
+  fieldErr('ru',eu);fieldErr('rp',ep);fieldErr('rp2',ep2);const bad=eu?'ru':ep?'rp':ep2?'rp2':null;if(bad){$('#'+bad).focus();return}
+  S.user=u;go('home');toast('สมัครสมาชิกแล้ว ยินดีต้อนรับ '+u+' 🎉')}});
+phone.addEventListener('input',e=>{const id=e.target.id;if(['lu','lp','ru','rp','rp2'].includes(id))fieldErr(id,'')});
+
+/* ================= router ================= */
+const R={welcome:vWelcome,login:vLogin,register:vRegister,home:vHome,event:vEvent,route:vRoute,community:vCommunity,diary:vDiary,notebook:vNotebook};
+function render(v,anim=true){closeSheet();SEL=null;phone.querySelectorAll('.screen,.toast').forEach(n=>n.remove());phone.insertAdjacentHTML('beforeend',R[v]());const s=phone.querySelector('.screen');if(anim)s.classList.add('enter');
+ document.querySelectorAll('#jump button').forEach(b=>b.setAttribute('aria-current',b.dataset.jump===v));}
+function go(v,push=true){if(v==='events'){go('home');setTimeout(()=>$('#near')?.scrollIntoView({behavior:'smooth'}),60);return}
+ if(!R[v])v='welcome';if(push&&S.view!==v)S.history.push(S.view);S.view=v;PEN=false;if(v!=='route')S.navStep=-1;render(v);if(location.hash!=='#'+v){try{history.replaceState(null,'','#'+v)}catch(e){location.hash=v}}}
+$('#jump').innerHTML=VIEWS.map(([k,l],i)=>`<button data-jump="${k}"><b>${String(i).padStart(2,'0')}</b>${l}</button>`).join('');
+$('#jump').addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(b)go(b.dataset.jump)});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(R[h]&&h!==S.view)go(h)});
+
+/* ================= clicks ================= */
+phone.addEventListener('click',e=>{const t=e.target.closest('button,[data-close]');if(!t)return;const d=t.dataset;
+ if(d.eye){const i=$('#'+d.eye);const show=i.type==='password';i.type=show?'text':'password';t.innerHTML=I(show?'eyeoff':'eye');t.setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน');return}
+ if('random' in d){openSheet('random');spin();return}
+ if('reroll' in d){spin();return}
+ if('buy' in d){S.buy={tier:0,qty:1,pay:'promptpay'};openSheet('buy');return}
+ if('myticket' in d){openSheet('buy');return}
+ if(d.tier){S.buy.tier=+d.tier;refreshSheet();return}
+ if(d.qty){S.buy.qty=Math.max(1,Math.min(6,S.buy.qty+(+d.qty)));refreshSheet();return}
+ if(d.pay){S.buy.pay=d.pay;refreshSheet();return}
+ if('confirmbuy' in d){const e=ev();const code='BKK-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-'+Math.floor(1000+Math.random()*9000);S.tickets[e.id]={tier:S.buy.tier,qty:S.buy.qty,code};rerender();openSheet('buy');toast(tiersOf(e)[S.buy.tier][1]?'ซื้อบัตรสำเร็จ 🎉':'ลงทะเบียนสำเร็จ 🎉');return}
+ if('newpage' in d){snap();NB.curEntry=null;NB.date=null;NB.dateLabel=null;if(NB.items.length||NB.ink.length){NB.archive=NB.archive||[];NB.archive.push({items:NB.items,ink:NB.ink,paper:NB.paper})}NB.items=[];NB.ink=[];NB.paper='blank';save();go('notebook');toast('เปิดหน้าใหม่แล้ว · หน้าเดิมกด “ย้อน” เพื่อกลับได้');return}
+ if(d.go){go(d.go);return}
+ if('back' in d){const p=S.history.pop()||'home';go(p,false);return}
+ if(d.event){S.event=d.event;S.route=0;S.reverse=false;go('event');return}
+ if(d.route){S.event=d.route;S.route=0;S.reverse=false;go('route');return}
+ if(d.save){const id=d.save;S.saved.has(id)?S.saved.delete(id):S.saved.add(id);t.setAttribute('aria-pressed',S.saved.has(id));toast(S.saved.has(id)?'บันทึกงานไว้แล้ว 🔖':'เอาออกจากที่บันทึกแล้ว');return}
+ if(d.cat){S.cat=d.cat;document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===S.cat));$('#homelists').innerHTML=homeLists();return}
+ if(d.toast){toast(d.toast);return}
+ if('share' in d){const u=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(()=>toast('คัดลอกลิงก์แล้ว 🔗'),()=>toast('คัดลอกลิงก์ไม่ได้ในหน้านี้'))}else toast('คัดลอกลิงก์ไม่ได้ในหน้านี้');return}
+ // route
+ if(d.opt){S.route=+d.opt;S.navStep=-1;rerender();return}
+ if('swap' in d){S.reverse=!S.reverse;S.navStep=-1;rerender();toast(S.reverse?'แสดงเส้นทางขากลับ':'แสดงเส้นทางขาไป');return}
+ if('startnav' in d){S.navStep=0;rerender();$('#rscroll').scrollTop=0;return}
+ if('endnav' in d){S.navStep=-1;rerender();return}
+ if(d.step){const r=curRoute();const n=S.navStep+(+d.step);if(n>=r.steps.length){S.navStep=-1;rerender();toast('ถึงแล้ว! ขอให้สนุกกับงานนะ 🎉');return}S.navStep=Math.max(0,n);rerender();setTimeout(()=>document.querySelector('.step.now')?.scrollIntoView({block:'center',behavior:'smooth'}),30);return}
+ // community
+ if(d.ctab){S.ctab=d.ctab;document.querySelectorAll('[data-ctab]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ctab===S.ctab));$('#feed').innerHTML=feed();return}
+ if(d.hashtag){S.cq=d.hashtag.replace('#','').replace('2026','');S.ctab='ทั้งหมด';rerender();return}
+ if(d.like){const id=+d.like;S.liked.has(id)?S.liked.delete(id):S.liked.add(id);const p=S.posts.find(x=>x.id===id);t.setAttribute('aria-pressed',S.liked.has(id));t.innerHTML=I('heart')+(p.likes+(S.liked.has(id)?1:0));return}
+ if('compose' in d){openSheet('compose');return}
+ if(d.ctag){S.ctag=d.ctag;document.querySelectorAll('[data-ctag]').forEach(b=>{const on=b.dataset.ctag===S.ctag;b.style.background=on?'var(--violet)':'var(--violet-50)';b.style.color=on?'#fff':'var(--ink)'});return}
+ if('post' in d){const v=$('#ctext').value.trim();if(!v){$('#cerr').hidden=false;$('#ctext').focus();return}S.posts.unshift({id:Date.now(),name:'คุณ',meta:'เมื่อสักครู่',tag:S.ctag||'หาเพื่อนไปด้วย',av:'🐣',avc:'var(--lime)',body:v,likes:0,comments:0});S.ctab='ทั้งหมด';closeSheet();rerender();toast('โพสต์แล้ว 🎉');return}
+ // diary
+ if(d.day){S.day=d.day;document.querySelectorAll('[data-day]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.day===S.day));return}
+ if(d.mood){S.mood=+d.mood;document.querySelectorAll('[data-mood]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.mood===S.mood));toast('บันทึกอารมณ์วันนี้แล้ว');return}
+ // notebook
+ if(d.paper){snap();NB.paper=d.paper;$('#paper').className='paper '+NB.paper+(PEN?' pen':'');document.querySelectorAll('[data-paper]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.paper===NB.paper));save();return}
+ if(d.month){NB.month=d.month;document.querySelectorAll('[data-month]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.month===NB.month));save();return}
+ if('pen' in d){PEN=!PEN;SEL=null;const sc=$('#nbscroll').scrollTop;render('notebook',false);$('#nbscroll').scrollTop=sc;if(PEN)toast('โหมดปากกา: ลากนิ้วบนกระดาษเพื่อวาด');return}
+ if(d.penc){PENC=d.penc;document.querySelectorAll('[data-penc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.penc===PENC));return}
+ if('addtext' in d){addItem('w','hand',{a:'แตะ 2 ครั้งเพื่อแก้ข้อความ'});toast('เพิ่มข้อความแล้ว · แตะซ้ำเพื่อพิมพ์');return}
+ if('lib' in d){S.libq='';S.libcat='all';openSheet('lib');return}
+ if('photo' in d){$('#photo').click();return}
+ if('undo' in d){const u=UNDO.pop();if(!u){toast('ไม่มีอะไรให้ย้อนแล้ว');return}const o=JSON.parse(u);NB.items=o.items;NB.ink=o.ink;NB.paper=o.paper;SEL=null;$('#paper').className='paper '+NB.paper+(PEN?' pen':'');document.querySelectorAll('[data-paper]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.paper===NB.paper));renderItems();save();return}
+ if(d.ctx){const it=NB.items.find(i=>i.id===SEL);if(!it)return;snap();
+  if(d.ctx==='dup'){const c=JSON.parse(JSON.stringify(it));c.id=uid();c.x+=24;c.y+=24;c.z=++NB.z;NB.items.push(c);SEL=c.id}
+  if(d.ctx==='rot')it.r=(it.r+15)%360;if(d.ctx==='front')it.z=++NB.z;if(d.ctx==='del'){NB.items=NB.items.filter(i=>i!==it);SEL=null;toast('ลบแล้ว · กด “ย้อน” เพื่อเอากลับ')}
+  renderItems();save();return}
+ if('tplOpen' in d){S.libq='';S.libcat='tpl';openSheet('lib');return}
+ if(d.libcat){S.libcat=d.libcat;refreshLib();return}
+ if(d.add){const[k,v]=d.add.split(':');closeSheet();const lbl=k==='w'?W_DEF[v].l:k==='washi'?'เทปตกแต่ง':(STK_LIB.find(x=>x[1]===v)||SHAPES.find(x=>x[0]===v)||['','',''])[2]||'Element';addItem(k,v,{});toast('เพิ่ม '+lbl+' แล้ว');return}
+ if(d.tpl){applyTpl(d.tpl);return}
+ if('done' in d){openSheet('date');return}
+ if(d.qdate){const x=new Date();x.setDate(x.getDate()-(+d.qdate));$('#nbdate').value=isoDate(x);document.querySelectorAll('[data-qdate]').forEach(b=>b.setAttribute('aria-pressed',b===t));return}
+ if('savedate' in d){const v=$('#nbdate').value;if(!v){$('#derr').hidden=false;return}const[y,mo,da]=v.split('-').map(Number);const dt=new Date(y,mo-1,da);
+  const mon=dt.toLocaleDateString('th-TH',{month:'short'});const full=dt.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  const first=NB.items.find(i=>i.k==='w'&&['quote','prompt','hand','head','notes'].includes(i.v));const raw=first&&first.t&&first.t.a?first.t.a.replace(/<[^>]+>/g,''):'หน้าสมุดใหม่';
+  const entry={id:NB.curEntry||uid(),c:'var(--lime-50)',day:String(da).padStart(2,'0'),mon,title:raw.slice(0,28),mood:['😍','🥳','😭','😴','🤯'][S.mood]||'🙂',note:`หน้าสมุด ${NB.items.length} ชิ้น · บันทึกของวันที่ ${full}`,ev:'สมุดบันทึกของฉัน'};
+  NB.entries=(NB.entries||[]).filter(e=>e.id!==entry.id);NB.entries.unshift(entry);NB.curEntry=entry.id;NB.date=v;NB.dateLabel=full;save();closeSheet();go('diary');toast('บันทึกไดอารี่วันที่ '+full+' แล้ว ✨');return}
+ if('close' in d||t.matches('[data-close]')){closeSheet();return}
+});
+phone.addEventListener('input',e=>{
+ if(e.target.id==='q'){S.q=e.target.value;$('#homelists').innerHTML=homeLists()}
+ if(e.target.id==='cq'){S.cq=e.target.value;$('#feed').innerHTML=feed()}
+ if(e.target.id==='libq'){S.libq=e.target.value;S._libfocus=true;const b=$('#libbody');const tmp=document.createElement('div');tmp.innerHTML=libSheet();b.innerHTML=tmp.querySelector('#libbody').innerHTML}
+ if(e.target.id==='ctext'&&e.target.value.trim())$('#cerr').hidden=true;
+});
+phone.addEventListener('change',e=>{if(e.target.id!=='photo')return;const f=e.target.files&&e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){toast('เลือกไฟล์รูปภาพนะ');return}
+ const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const m=480/Math.max(img.width,img.height);c.width=img.width*Math.min(1,m);c.height=img.height*Math.min(1,m);c.getContext('2d').drawImage(img,0,0,c.width,c.height);addItem('w','polaroid',{img:c.toDataURL('image/jpeg',.82),a:'รูปของฉัน 📸'});toast('เพิ่มรูปแล้ว')};img.src=rd.result};rd.readAsDataURL(f);e.target.value=''});
+phone.addEventListener('keydown',e=>{if(e.key==='Escape'){if(S.sheet)closeSheet();else if(SEL){SEL=null;stopEdit();renderItems()}}
+ if((e.key==='Delete'||e.key==='Backspace')&&SEL&&!e.target.closest('[contenteditable="true"],input,textarea')){snap();NB.items=NB.items.filter(i=>i.id!==SEL);SEL=null;renderItems();save()}});
+function rerender(){const sc=phone.querySelector('.scroll')?.scrollTop||0;render(S.view,false);const s=phone.querySelector('.scroll');if(s)s.scrollTop=sc}
+
+/* ================= boot ================= */
+const start=location.hash.slice(1);go(R[start]?start:'welcome',false);
+})();
+</script>
+
+</body>
+</html>
